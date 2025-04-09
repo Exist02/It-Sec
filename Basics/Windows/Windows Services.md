@@ -10,7 +10,8 @@ Number of Instances: One master instance and child instance per session. The chi
 User Account: Local 
 System Start Time: Within seconds of boot time for the master instance
 
-==**What is unusual?**== A different parent process other than System (4) The image path is different from C:\Windows\System32 More than one running process. (children self-terminate and exit after each new session) The running User is not the SYSTEM user Unexpected registry entries for Subsystem
+==**What is unusual?**== 
+A different parent process other than System (4) The image path is different from C:\Windows\System32 More than one running process. (children self-terminate and exit after each new session) The running User is not the SYSTEM user Unexpected registry entries for Subsystem
 
 
 
@@ -23,7 +24,8 @@ Parent Process: Created by an instance of smss.exe
 Number of Instances: Two or more User Account: Local System 
 Start Time: Within seconds of Boot time for the First Two instances (for Session 0 and 1). Start times for additional instances occur as new sessions are created, although only Sessions 0 and 1 are often created.
 
-==**What is unusual?**== An actual parent Process. (smss.exe calls this Process and self-terminates) Image file path other than C:\Windows\System32 Subtle misspellings to hide rogue processes masquerading as csrss.exe in plain sight The user is not the SYSTEM user.
+==**What is unusual?**== 
+An actual parent Process. (smss.exe calls this Process and self-terminates) Image file path other than C:\Windows\System32 Subtle misspellings to hide rogue processes masquerading as csrss.exe in plain sight The user is not the SYSTEM user.
 
 
 
@@ -36,7 +38,8 @@ Parent Process: Created by an instance of smss.exe
 Number of Instances: One User Account: 
 Local System Start Time: Within seconds of boot time
 
-==**What is unusual?**== An actual parent process. (smss.exe calls this process and self-terminates) Image file path other than C:\Windows\System32 Subtle misspellings to hide rogue processes in plain sight Multiple running instances Not running as SYSTEM
+==**What is unusual?**== 
+An actual parent process. (smss.exe calls this process and self-terminates) Image file path other than C:\Windows\System32 Subtle misspellings to hide rogue processes in plain sight Multiple running instances Not running as SYSTEM
 
 
 
@@ -49,7 +52,8 @@ Parent Process: wininit.exe
 Number of Instances: One User Account
 Local System Start Time: Within seconds of boot time
 
-==What is unusual?== A parent process other than wininit.exe Image file path other than C:\Windows\System32 Subtle misspellings to hide rogue processes in plain sight Multiple running instances Not running as SYSTEM
+==What is unusual?== 
+A parent process other than wininit.exe Image file path other than C:\Windows\System32 Subtle misspellings to hide rogue processes in plain sight Multiple running instances Not running as SYSTEM
 
 
 
@@ -111,4 +115,5 @@ Number of Instances: One or more per interactively
 logged-in user User Account: Logged-in user(s) 
 Start Time: First instance when the first interactive user logon session begins
 
-==What is unusual?== An actual parent process. (userinit.exe calls this process and exits) Image file path other than C:\Windows Running as an unknown user Subtle misspellings to hide rogue processes in plain sight Outbound TCP/IP connections
+==What is unusual?== 
+An actual parent process. (userinit.exe calls this process and exits) Image file path other than C:\Windows Running as an unknown user Subtle misspellings to hide rogue processes in plain sight Outbound TCP/IP connections
