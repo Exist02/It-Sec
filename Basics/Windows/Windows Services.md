@@ -12,6 +12,8 @@ System Start Time: Within seconds of boot time for the master instance
 
 ==**What is unusual?**== A different parent process other than System (4) The image path is different from C:\Windows\System32 More than one running process. (children self-terminate and exit after each new session) The running User is not the SYSTEM user Unexpected registry entries for Subsystem
 
+
+
 ### **csrss.exe**
 
 Bedeutet Client Server Runtime Process Ist Kritisch das es immer läuft Ist für Win32 console und Erstellung und Löschung von Prozess Threats zuständig Zudem verantwortlich für die Windows API, Laufwerke Mappen und das Herunterfahren zu managen Note: Recall that csrss.exe and winlogon.exe are called from smss.exe at Startup for Session 1.
@@ -22,6 +24,8 @@ Number of Instances: Two or more User Account: Local System
 Start Time: Within seconds of Boot time for the First Two instances (for Session 0 and 1). Start times for additional instances occur as new sessions are created, although only Sessions 0 and 1 are often created.
 
 ==**What is unusual?**== An actual parent Process. (smss.exe calls this Process and self-terminates) Image file path other than C:\Windows\System32 Subtle misspellings to hide rogue processes masquerading as csrss.exe in plain sight The user is not the SYSTEM user.
+
+
 
 ### **wininit.exe**
 
@@ -34,6 +38,8 @@ Local System Start Time: Within seconds of boot time
 
 ==**What is unusual?**== An actual parent process. (smss.exe calls this process and self-terminates) Image file path other than C:\Windows\System32 Subtle misspellings to hide rogue processes in plain sight Multiple running instances Not running as SYSTEM
 
+
+
 ### **wininit.exe > Services.exe**
 
 Ist der SCM (Service Control Manager) Hauptaufgabe Laden, interagieren starten und Stoppen von Servicen in cmd "sc.exe" Daten in der Registry: HKLM\System\CurrentControlSet\Services. Parent Process zu svchost.exe, spoolsv.exe, msmpeng.exe, und dllhost.exe
@@ -44,6 +50,8 @@ Number of Instances: One User Account
 Local System Start Time: Within seconds of boot time
 
 ==What is unusual?== A parent process other than wininit.exe Image file path other than C:\Windows\System32 Subtle misspellings to hide rogue processes in plain sight Multiple running instances Not running as SYSTEM
+
+
 
 ### **wininit.exe > services.exe > svchost.exe**
 
@@ -63,6 +71,8 @@ Start Time: Typically within seconds of boot time. Other instances of svchost.ex
 ==What is unusual?== 
 A parent process other than services.exe Image file path other than C:\Windows\System32 Subtle misspellings to hide rogue processes in plain sight The absence of the -k parameter
 
+
+
 ### **Lsass.exe**
 
 Local Security Authority Subsystem Service (LSASS) Setzt die Sicherheitsrichtlinien um, Verifiziert Benutzer beim Login auf den PC/Server, handhabt PW änderungen und erstellt access token Schreib in den Security log Erstellt sicheheitstokens für SAM( Security Account Manager, AD und NETLOGON HKLM\System\CurrentControlSet\Control\Lsa Wird auch häufig als ziel genutzt bsp.: via Mimikatz
@@ -75,6 +85,8 @@ System Start Time: Within seconds of boot time
 
 ==What is unusual?== 
 A parent process other than wininit.exe Image file path other than C:\Windows\System32 Subtle misspellings to hide rogue processes in plain sight Multiple running instances Not running as SYSTEM
+
+
 
 winlogon.exe 
 
