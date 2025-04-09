@@ -88,18 +88,27 @@ A parent process other than wininit.exe Image file path other than C:\Windows\Sy
 
 
 
-winlogon.exe 
+### **winlogon.exe 
 
 Windows Logon kümmert sich um die Secure Attention Sequence (SAS) Zudem lät er die Nutzerdaten via NTUSER:DAT und userinit.exe Außerdem kümmert er sich um das Sperren des PCs nach zeit
 
-**Image Path**: %SystemRoot%\System32\winlogon.exe Parent 
-Process: Created by an instance of smss.exe that exits, so analysis tools usually do not provide the parent process name. 
-Number of Instances: One or more User Account: Local System Start Time: Within seconds of boot time for the first instance (for Session 1). Additional instances occur as new sessions are created, typically through Remote Desktop or Fast User Switching logons.
+**Image Path**: %SystemRoot%\System32\winlogon.exe 
+Parent Process: Created by an instance of smss.exe that exits, so analysis tools usually do not provide the parent process name. 
+Number of Instances: One or more 
+User Account: Local 
+System Start Time: Within seconds of boot time for the first instance (for Session 1). Additional instances occur as new sessions are created, typically through Remote Desktop or Fast User Switching logons.
 
-**What is unusual?** An actual parent process. (smss.exe calls this process and self-terminates) Image file path other than C:\Windows\System32 Subtle misspellings to hide rogue processes in plain sight Not running as SYSTEM Shell value in the registry other than explorer.exe
+==**What is unusual?**== 
+An actual parent process. (smss.exe calls this process and self-terminates) Image file path other than C:\Windows\System32 Subtle misspellings to hide rogue processes in plain sight Not running as SYSTEM Shell value in the registry other than explorer.exe
 
-explorer.exe ermöglicht den Zugriff auf Datein und Ordner zudem stellt er z.B. das Start menü und die Taskbar zur verfügung wird von der Userinit.exe gestartet bevor sich diese wieder schließt deshalb kein Parent Process
+### **explorer.exe 
 
-Image Path: %SystemRoot%\explorer.exe Parent Process: Created by userinit.exe and exits Number of Instances: One or more per interactively logged-in user User Account: Logged-in user(s) Start Time: First instance when the first interactive user logon session begins
+ermöglicht den Zugriff auf Datein und Ordner zudem stellt er z.B. das Start menü und die Taskbar zur verfügung wird von der Userinit.exe gestartet bevor sich diese wieder schließt deshalb kein Parent Process
 
-What is unusual? An actual parent process. (userinit.exe calls this process and exits) Image file path other than C:\Windows Running as an unknown user Subtle misspellings to hide rogue processes in plain sight Outbound TCP/IP connections
+Image Path: %SystemRoot%\explorer.exe 
+Parent Process: Created by userinit.exe and exits 
+Number of Instances: One or more per interactively 
+logged-in user User Account: Logged-in user(s) 
+Start Time: First instance when the first interactive user logon session begins
+
+==What is unusual?== An actual parent process. (userinit.exe calls this process and exits) Image file path other than C:\Windows Running as an unknown user Subtle misspellings to hide rogue processes in plain sight Outbound TCP/IP connections
