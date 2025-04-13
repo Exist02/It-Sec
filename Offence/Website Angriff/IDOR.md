@@ -15,4 +15,4 @@ Du wirst neugierig und versuchst, den Wert user_id auf 1000 zu ändern (http://o
 ### IDORS in Verschlüsselten (Encoded) URLs
 
 
-[https://imgur.com/PrqtlZ8]()
+https://imgur.com/PrqtlZ8
