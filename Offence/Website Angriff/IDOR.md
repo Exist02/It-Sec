@@ -22,3 +22,18 @@ https://www.base64encode.org/
 
 Link unterhalb Verständnis Bild 
 https://imgur.com/PrqtlZ8
+
+
+### Finden von IDORs in Hashed IDs
+
+Gehashte IDs sind etwas komplizierter zu handhaben als kodierte, aber sie können einem vorhersehbaren Muster folgen, z. B. die gehashte Version des Integer-Wertes sein. Zum Beispiel würde die Kennnummer 123 zu 202cb962ac59075b964b07152d234b70 werden, wenn md5-Hashing verwendet wird
+
+Es lohnt sich, alle entdeckten Hashes durch einen Webdienst wie https://crackstation.net/ (der eine Datenbank mit Milliarden von Hash-to-Value-Ergebnissen hat) zu schicken, um zu sehen, ob wir irgendwelche Übereinstimmungen finden.
+
+
+### Unvorhersehbare IDs
+
+Wenn die Kennung mit den oben genannten Methoden nicht ermittelt werden kann, besteht eine ausgezeichnete Methode zur IDOR-Erkennung darin, zwei Konten zu erstellen und die Kennungsnummern zwischen ihnen auszutauschen. 
+Wenn du den Inhalt des anderen Benutzers mit dessen Id-Nummer sehen kannst, während du mit einem anderen Konto (oder gar nicht) eingeloggt bist, hast du eine gültige IDOR-Schwachstelle gefunden.
+
+
