@@ -14,5 +14,11 @@ Du wirst neugierig und versuchst, den Wert user_id auf 1000 zu ändern (http://o
 
 ### IDORS in Verschlüsselten (Encoded) URLs
 
+Wenn Websites Daten von Seite zu Seite weitergeben (via Post, querystring, oder cookie) werden die zu Übermittelnden Daten erstmal encoded. Das sorgt dafür das die Daten meistens in das ASCII Format übertragen werden (mit Fillern/Padding: a-z, A-Z, 0-9 and = ). Die Bekannteste Encoding Variante ist Base64 welche man aber einfach via Online Tool de/encoden kann. 
 
+De/Encoding links
+https://www.base64decode.org/
+https://www.base64encode.org/
+
+Link unterhalb Verständnis Bild 
 https://imgur.com/PrqtlZ8
