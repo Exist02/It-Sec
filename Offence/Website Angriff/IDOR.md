@@ -10,3 +10,9 @@ Beispiel:
 Stellen dir vor, du hast sich gerade bei einem Online-Dienst angemeldet und möchtest deine Profilinformationen ändern. Der Link, auf den Sie klicken, führt zu http://online-service.thm/profile?user_id=1305, und du kannst deine Daten sehen.
 
 Du wirst neugierig und versuchst, den Wert user_id auf 1000 zu ändern (http://online-service.thm/profile?user_id=1000). Zu deiner Überraschung kannst du nun die Daten eines anderen Benutzers sehen. Damit hast du nun eine IDOR-Schwachstelle entdeckt! Da Idealerweise auf der Website überprüft werden sollte, ob die Benutzerdaten zu dem angemeldeten Benutzer gehören, der sie abfragt.
+
+
+### IDORS in Verschlüsselten (Encoded) URLs
+
+
+![[5f2cbe5c4ab4a274420bc9a9afc9202d 1.png]]
