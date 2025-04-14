@@ -43,3 +43,15 @@ Intressant Locations an die man Navigieren kann
 
 ### LFI
 
+Kann wie Path Traversal die dot dot Slash methode Benutzen. Kann aber auch schon jenachdem einfachere Variante nutzen 
+
+
+wie z.B. die gesuchte Datei an die URL anheften. Dies funktioniert wenn im Query code kein Direcory Spezifiziert ist. 
+Bsp.
+http://10.10.208.102//lab1.php?file=/etc/passwd
+
+
+Wenn ein Directory Spezifiziert ist kann die Dot Dot Slash methode verwendet werden. 
+Bsp.:
+http://10.10.208.102/lab2.php?file=../../../../etc/passwd
+
