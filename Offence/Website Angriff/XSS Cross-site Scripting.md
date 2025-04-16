@@ -1,0 +1,1 @@
+Cross-Site Scripting, in der Cybersecurity-Community besser bekannt als XSS, wird als Injektionsangriff eingestuft, bei dem bösartiges JavaScript in eine Webanwendung eingeschleust wird, mit der Absicht, von anderen Benutzern ausgeführt zu werden.
