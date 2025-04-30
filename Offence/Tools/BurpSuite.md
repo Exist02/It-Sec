@@ -48,6 +48,45 @@ Hinweis: Bei der Zuweisung von Nummern im Dropdown-Menü „Payload Set“ für 
 **Angriffs Typen**
 
 1. Sniper
+	- Ist meistens der Standard Angriffs Typ
+	- Effektiv für Angriffe an einer einzigen Stelle, wie z. B. Brute-Force-Angriffe auf Passwörter oder Fuzzing für API-Endpunkte
+	- Bei einem Sniper Angriff gibt man einen Satz Payloads an. Dieser kann z.B. eine Wordlist oder ein Zahlen Bereich sein. Intruder fügt dann die Payloads an der definierten stelle in dem Request ein
+	- Die anzahl der Requests die Sniper dann versendet brechnen sich dann via
+		- Anfragen = AnzahlPayloads x AnzahlPositionen
+	- 
+
 2. Battering Ram
+	-  unterscheidet sich von Sniper dadurch, dass er dieselbe Payload in jeder Position gleichzeitig platziert, anstatt jede Payload nacheinander in jeder Position zu platzieren.
+	-  ist nützlich, wenn wir dieselbe Payload gegen mehrere Positionen gleichzeitig testen wollen, ohne dass eine sequenzielle Substitution erforderlich ist.
+
 3. Pitchfork
+	- ist vergleichbar mit mehreren Sniper-Attacken, die gleichzeitig ausgeführt werden
+	-  Während Sniper einen Payload-Satz verwendet, um alle Positionen gleichzeitig zu testen, verwendet Pitchfork einen Payload-Satz pro Position (bis zu einem Maximum von 20) und durchläuft sie alle gleichzeitig.
+	- Wichtig ist wenn die Listen ungleich lang sind dann hört Pitchfork auf wenn die kleinere durch ist
+	- Diese Angriffsart ist besonders nützlich bei der Durchführung von Credential-Stuffing-Angriffen oder wenn mehrere Positionen separate Payload-Sets erfordern. Sie ermöglicht das gleichzeitige Testen mehrerer Positionen mit unterschiedlichen Payloads.
+
 4. Cluster Bomb
+	- ermöglicht es uns, mehrere Payload-Sets zu wählen, eines pro Position (bis zu einem Maximum von 20). Im Gegensatz zu Pitchfork, wo alle Nutzlastsets gleichzeitig getestet werden, durchläuft Cluster Bomb jedes Nutzlastset einzeln, um sicherzustellen, dass jede mögliche Kombination von Nutzlasten getestet wird.
+	- Cluster-Bomben-Angriffe können eine beträchtliche Menge an Datenverkehr erzeugen, da sie jede Kombination testen
+		- Anfragen = AnzahlZeileninPayload * AnzahlZeilen in payload
+	- WICHTIG: Ist sehr mit Vorsicht zu genießen da sehr laut aufgrund der menge an Traffic
+	- WICHTIG: in derr Burp Community Edition ist die Intruder und damit auch Cluster bomb Rate limited
+	- Der Angriffstyp Cluster-Bombe ist besonders nützlich für Szenarien, bei denen die Zuordnung zwischen Benutzernamen und Kennwörtern unbekannt ist.
+
+
+### Decoder
+
+Das Decoder-Modul der Burp Suite bietet dem Benutzer Möglichkeiten zur Datenmanipulation. Wie der Name schon sagt, dekodiert es nicht nur Daten, die während eines Angriffs abgefangen wurden, sondern bietet auch die Funktion, unsere eigenen Daten zu kodieren und für die Übertragung an das Ziel vorzubereiten. Mit dem Decoder können wir auch Hashsummen von Daten erstellen und eine Smart Decode-Funktion bereitstellen, die versucht, bereitgestellte Daten rekursiv zu dekodieren, bis sie wieder Klartext sind (wie die „Magic“-Funktion von Cyberchef).
+
+### Comparer
+
+Comparer, as the name implies, lets us compare two pieces of data, either by ASCII words or by bytes.
+
+### Sequenzer
+
+Mit Sequencer können wir die Entropie bzw. Zufälligkeit von „Token“ bewerten. Token sind Zeichenfolgen, die zur Identifizierung einer Sache verwendet werden und idealerweise auf kryptografisch sichere Weise erzeugt werden sollten. Bei diesen Token kann es sich um Sitzungscookies oder CSRF-Tokens (Cross-Site Request Forgery) handeln, die zum Schutz von Formularübermittlungen verwendet werden. Wenn diese Token nicht sicher generiert werden, könnten wir theoretisch kommende Tokenwerte vorhersagen. Dies könnte erhebliche Auswirkungen haben, wenn das betreffende Token beispielsweise zum Zurücksetzen von Passwörtern verwendet wird.
+
+### Organizer
+Das Organizer-Modul der Burp Suite hilft dabei, Kopien von HTTP-Anfragen zu speichern und mit Anmerkungen zu versehen, die Sie zu einem späteren Zeitpunkt wieder aufrufen möchten. Dieses Tool kann besonders nützlich sein, um Ihren Arbeitsablauf bei Penetrationstests zu organisieren. Hier sind einige der wichtigsten Funktionen:
+- Anfragen speichern, die du später untersuchen möchtest, Anfragen speichern, die du bereits als interessant identifiziert hast, oder Anfragen speichern, die du später zu einem Bericht hinzufügen möchtest.
+- Sie können HTTP-Anfragen von anderen Burp-Modulen wie Proxy oder Repeater an den Burp Organizer senden. Klicken Sie dazu mit der rechten Maustaste auf die Anfrage und wählen Sie An Organizer senden oder verwenden Sie den Standard-Hotkey Strg + O. Jede HTTP-Anfrage, die Sie an Organizer senden, ist eine schreibgeschützte Kopie der ursprünglichen Anfrage, die zu dem Zeitpunkt gespeichert wurde, als Sie sie an Organizer gesendet haben.
