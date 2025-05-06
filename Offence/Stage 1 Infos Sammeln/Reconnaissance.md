@@ -87,6 +87,32 @@ Dann gibt es da auch noch addons hier ein paar beispiele die sich lohnen:
 
 
 - Ping
+Obvious nur dann sinnvoll wenn ICMP an ist. Aber dann generell Praktisch um zu sehen ob Target up
+
 - Traceroute
+Rausfinden der Hops/Router auf dem Weg zum Ziel
+
+
 - Telnet 
+Der von telnet verwendete Standard-Port ist 23. Aus Sicht der IT-Sicherheit sendet Telnet alle Daten, einschließlich Benutzernamen und Kennwörter, im Klartext. Das Senden im Klartext macht es jedem, der Zugang zum Kommunikationskanal hat, leicht, die Anmeldedaten zu stehlen. 
+Der Telnet-Client kann jedoch aufgrund seiner Einfachheit auch für andere Zwecke verwendet werden. Da der Telnet-Client auf dem TCP-Protokoll basiert, kann man mit Telnet eine Verbindung zu einem beliebigen Dienst herstellen und dessen Banner abgreifen. Mit telnet MACHINE_IP PORT können Sie eine Verbindung zu jedem Dienst herstellen, der über TCP läuft, und sogar ein paar Nachrichten austauschen, sofern er keine Verschlüsselung verwendet.
+
 - Netcat
+Netcat oder einfach nc hat verschiedene Anwendungen, die für einen Pentester von großem Wert sein können. Netcat unterstützt sowohl TCP- als auch UDP-Protokolle. Es kann als Client fungieren, der sich mit einem Listening Port verbindet, oder als Server, der auf einem Port Ihrer Wahl lauscht. Somit ist es ein praktisches Tool, das Sie als einfachen Client oder Server über TCP oder UDP verwenden können.
+
+Syntax 
+
+```
+nc *ZIELIP* *ZIEL PORT*
+```
+
+generelle Optionen für die Syntax 
+
+|option|meaning|
+|---|---|
+|-l|Listen mode|
+|-p|Specify the Port number|
+|-n|Numeric only; no resolution of hostnames via DNS|
+|-v|Verbose output (optional, yet useful to discover any bugs)|
+|-vv|Very Verbose (optional)|
+|-k|Keep listening after client disconnects|
