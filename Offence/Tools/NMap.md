@@ -130,11 +130,99 @@ Welche Status kann Technisch gesehen ein Port haben
 6. Geschlossen|Gefiltert  -Dies bedeutet, dass Nmap nicht entscheiden kann, ob ein Port geschlossen oder gefiltert ist.+
 
 
+#### TCP connect port scan
+Funktioniert auf Basis des TCP handshakes. Da wir aber beim Scannen nicht mit dem Offenen Port verbunden bleiben wollen wird nach Herstellung der Verbindung diese wieder mit einem RST/Ack Paket gekappt.
+Beispiel für den scan mit Syntax:
+
+```
+nmap -sT *ZielIP*
+```
+
+Wichtig: 
+Wenn man keine Admin/root bzw sudo rechte hat kann der Scan nur offene ports erkennen
+
+Zu Beachten ist, dass die Option -F verwendet werden kann, um den Schnellmodus zu aktivieren und die Anzahl der gescannten Ports von 1000 auf 100 häufigste Ports zu reduzieren.
+
+Es ist erwähnenswert, dass die Option -r auch hinzugefügt werden kann, um die Ports in fortlaufender Reihenfolge statt in zufälliger Reihenfolge zu scannen. Diese Option ist nützlich, wenn getestet werden soll, ob die Ports in einer konsistenten Weise geöffnet werden, z. B. beim Hochfahren eines Ziels.
 
 
 
+##### TCP SYN Port Scan
+Nutzer ohne Admin/sudo rechte sind Beschränkt auf einen Connect Scan. Dieser hat den großen unterschied das er den TCP Handshake nicht vollendet sondern nach der SYN/ACK Antwort des Servers die Verbindung wieder mit einem RST abbricht. 
+
+Das hat den großen Vorteil das weniger Pakete in Generell versendet werden und damit der Scan leiser ist.
+
+```
+nmap -sS *Ziel ip*
+```
+
+##### UDP port scan
+
+Da UDP ein Protokoll ist das keine Feste Verbindung benötigt braucht es auch keine handshakes etc. Aber meistens bekommt man auf dem UDP dann aber eine Antwort. Wenn ein UDP Paket aber einen geschlossenen Port trifft bekommt der Client eine ICMP Port unreachable meldung. 
 
 
-8. TCP connect port scan
-9. TCP SYN port scan
-10. UDP port scan
+```
+nmap -sU *Target IP*
+```
+
+# Advanced Port Scans 
+
+##### NULL Scan
+
+Ein NULL Scan setzt wie der Name Sagt NULL Flags bits. Ein TCP-Paket, bei dem keine Flags gesetzt sind, löst keine Antwort aus, wenn es einen offenen Port erreicht. Aus der Sicht von Nmap bedeutet das Ausbleiben einer Antwort bei einem Null-Scan also, dass entweder der Port offen ist oder eine Firewall das Paket blockiert.
+Wenn aber das Ziel mit einem RST/ACK Paket antwortet ist klar das der Port zu ist. Sprich keine Antwort = Offener Port oder Firewall block, Eine Antwort = Geschlossener Port 
+
+```
+sudo nmap -sN *Ziel IP*
+```
+
+
+##### FIN Scan
+
+Der FIN-Scan sendet ein TCP-Paket mit gesetztem FIN-Flag. Ebenso wird hier keine Antwort gesendet, wenn der TCP-Port offen ist. Auch hier kann Nmap nicht sicher sein, ob der Port offen ist oder ob eine Firewall den Verkehr zu diesem TCP-Port blockiert. Folglich können wir wissen, welche Ports geschlossen sind und dieses Wissen nutzen, um auf die offenen oder gefilterten Ports zu schließen. Es sei darauf hingewiesen, dass einige Firewalls den Datenverkehr „stillschweigend“ verwerfen, ohne ein RST zu senden.
+
+```
+sudo nmap -sF *Ziel IP*
+```
+
+##### Xmas Scan
+
+Der Xmas-Scan hat seinen Namen von der Weihnachtsbaumbeleuchtung. Bei einem Xmas-Scan werden die Flaggen FIN, PSH und URG gleichzeitig gesetzt. 
+Wie beim Null-Scan und FIN-Scan bedeutet der Empfang eines RST-Pakets, dass der Anschluss geschlossen ist. Andernfalls wird er als offen|gefiltert gemeldet.
+
+```
+sudo nmap -sX *Ziel Ip*
+```
+
+##### TCP ACK Scan
+
+Wie der Name schon sagt, wird bei einem ACK-Scan ein TCP-Paket mit gesetztem ACK-Flag gesendet. Logischer weise würde das Ziel auf das ACK mit RST antworten, unabhängig vom Zustand des Ports. Dieses Verhalten kommt zustande, weil ein TCP-Paket mit gesetztem ACK-Flag nur als Antwort auf ein empfangenes TCP-Paket gesendet werden sollte, um den Empfang von Daten zu bestätigen, anders als in unserem Fall. Daher wird uns dieser Scan nicht sagen, ob der Zielport in einem einfachen Setup offen ist.
+
+Diese Art von Scan wäre hilfreich, wenn sich vor dem Ziel eine Firewall befindet. Anhand der ACK-Pakete, die zu Antworten führten, erfährt man, welche Ports nicht von der Firewall blockiert wurden. Mit anderen Worten, diese Art von Scan ist besser geeignet, um Firewall-Regelsätze und Konfigurationen zu ermitteln.
+
+```
+sudo nmap -sA *IP Adresse*
+```
+
+
+##### TCP Window Scan
+
+Ein weiterer ähnlicher Scan ist der TCP Window Scan. Der TCP- Window-Scan ist fast dasselbe wie der ACK-Scan, untersucht jedoch das TCP-Fensterfeld der zurückgesendeten RST-Pakete. Auf bestimmten Systemen kann dadurch festgestellt werden, dass der Anschluss offen ist. 
+
+Auch ein TCP-Fenster-Scan gegen ein Linux-System ohne Firewall wird nicht viel Aufschluss geben. Wenn wir jedoch unseren TCP-Fenster-Scan gegen einen Server hinter einer Firewall wiederholen, erhalten wir erwartungsgemäß zufriedenstellendere Ergebnisse
+
+```
+sudo nmap -sW *Ziel IP*
+```
+
+##### Custom Flag Scan
+
+Wenn man mit einer neuen TCP-Flag-Kombination experimentieren möchte, die über die eingebauten TCP-Scan-Typen hinausgeht, kann man dies mit --scanflags tun. Wenn man zum Beispiel SYN, RST und FIN gleichzeitig setzen möchte, kann man dies mit --scanflags RSTSYNFIN tun.
+
+Abschließend ist anzumerken, dass der ACK-Scan und der Fensterscan sehr effizient bei der Erstellung der Firewall-Regeln waren. Es ist jedoch wichtig, daran zu denken, dass nur weil eine Firewall einen bestimmten Port nicht blockiert, dies nicht unbedingt bedeutet, dass ein Dienst diesen Port abhört.
+
+Es besteht zum Beispiel die Möglichkeit, dass die Firewall-Regeln aktualisiert werden müssen, um die jüngsten Dienständerungen zu berücksichtigen. ACK- und Fensterscans decken daher die Firewall-Regeln auf, nicht die Dienste.
+
+```
+sudo nmap --scanflags *Flag auf die Gescannt wird* *Ziel IP *
+```
