@@ -226,3 +226,23 @@ Es besteht zum Beispiel die Möglichkeit, dass die Firewall-Regeln aktualisiert 
 ```
 sudo nmap --scanflags *Flag auf die Gescannt wird* *Ziel IP *
 ```
+
+
+# Spoofing und Decoys
+
+#### Spoofing 
+In manchen Situationen kann es sehr hilfreich sein nicht die Eigene IP als Source anzugeben sondern eine andere (um z.B. nicht so leicht aufzufallen). Das Problem was mit dieser Option kommt ist aber das nmap logischer weise keine Response vom Sccan bekommt. Sprich man muss mit z.B. Wireshark den Netzwerk traffic mitschneiden und dann auswerten um Resultate zu erhalten.
+
+Im Allgemeinen wird erwartet, dass man die Netzwerkschnittstelle mit -e angibt und den Ping-Scan -Pn explizit deaktiviert. Statt nmap -S SPOOFED_IP 10.10.156.117 sollte man also nmap -e NET_INTERFACE -Pn -S SPOOFED_IP 10.10.156.117 ausführen, um Nmap explizit mitzuteilen, welche Netzwerkschnittstelle es verwenden soll und dass es keine Ping-Antwort erwartet. Es ist wichtig zu wiederholen, dass dieser Scan nutzlos ist, wenn das Angreifersystem das Netzwerk nicht auf Antworten überwachen kann.
+
+```
+nmap -e *Netz Interface* -Pn -S *IP die Gespoofed wird* *Ziel IP*
+```
+
+Wenn man sich im gleichen Subnetz wie der Zielcomputer befindet, kann man auch seine MAC-Adresse spoofen. Man kann die MAC-Quelladresse mit --spoof-mac SPOOFED_MAC angeben. Dieses Adress-Spoofing ist nur möglich, wenn sich der Angreifer und der Zielcomputer im selben Ethernet-Netzwerk (802.3) oder im selben WiFi-Netzwerk (802.11) befinden.
+
+Spoofing funktioniert nur in einer minimalen Anzahl von Fällen, in denen bestimmte Bedingungen erfüllt sind. 
+
+#### Decoys
+
+Eine Ander methode die sehr gut Funktioniert anstelle von Spoofing sind Decoys. hi
