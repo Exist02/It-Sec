@@ -10,7 +10,7 @@ Genereller Port Scan
 nmap -p- target
 ```
 
-Optionen/Pararmeter für Nmap
+Häufige Optionen/Pararmeter für Nmap
 
 | Pararmeter      |                                                                                         |
 | --------------- | --------------------------------------------------------------------------------------- |
