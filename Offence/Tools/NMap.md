@@ -273,3 +273,43 @@ nmap -D 10.10.0.1,10.10.0.2,RND,RND,ME 10.10.43.56
 
 
 
+
+
+# Skripte
+
+Bei jeder Nmap installation werden Standard Mäßig eine menge Scripte für NMAP mit heruntergeladen und bereitgestellt. Zu dinden sind diese unter 
+"/usr/share/nmap/scripts" 
+
+Um eine Script Kategorie laufen zu lassen kann man entweder "--script=default" oder "-sC" oder "--script *Script Name" nutzen 
+
+|Script Category|Description|
+|---|---|
+|`auth`|Authentication related scripts|
+|`broadcast`|Discover hosts by sending broadcast messages|
+|`brute`|Performs brute-force password auditing against logins|
+|`default`|Default scripts, same as `-sC`|
+|`discovery`|Retrieve accessible information, such as database tables and DNS names|
+|`dos`|Detects servers vulnerable to Denial of Service (DoS)|
+|`exploit`|Attempts to exploit various vulnerable services|
+|`external`|Checks using a third-party service, such as Geoplugin and Virustotal|
+|`fuzzer`|Launch fuzzing attacks|
+|`intrusive`|Intrusive scripts such as brute-force attacks and exploitation|
+|`malware`|Scans for backdoors|
+|`safe`|Safe scripts that won’t crash the target|
+|`version`|Retrieve service versions|
+|`vuln`|Checks for vulnerabilities or exploit vulnerable services|
+
+# Speichern des Outputs
+
+Hier gibt es Primär 3 Formate 
+
+1. Normal
+	1. Wird Ausgegeben via "-oN *Dateiname" 
+	2. Output wird so gespeichtert vom Format als ob man den Befehl frisch laufen gelassen hat
+2. Grepable
+	1. Wird Ausgegeben via "-oG *Dateiname*"
+	2. hier wird das Format zusammengeschoben um Platzsparend zu sein da die Datei vorraussichtlich mit Grep Bearbeitet wird
+3. XML
+	1. Ausgabe via "-oX *Dateiname*"
+	2. Ist meistens am besten wenn der Output in anderen Programmen weiterverarbeitet werden soll
+	3
