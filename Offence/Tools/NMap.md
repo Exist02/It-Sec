@@ -227,6 +227,22 @@ Es besteht zum Beispiel die Möglichkeit, dass die Firewall-Regeln aktualisiert 
 sudo nmap --scanflags *Flag auf die Gescannt wird* *Ziel IP *
 ```
 
+##### Zombie/Idle Scans
+
+Für diesen Scan wird ein Gerät Benötigt welches im Idle permanent mit dem Netzwerk Verbunden ist (wie z.B. ein Drucker). Der Scan Funktioniert dann so, dass NMAP es aussehen lässt als ob jede Port Abfrage von dem Zombie/Idle Gerät kommt und dann Kontrolliert ob der Zombie eine Passende Antwort bekommen hat (SYN, ACK nicht RST). Dass wird durch die Abfrage des IP-ID Werts im Header gemacht.
+
+Beispiel Befehl 
+```
+nmap -sI *Zombie IP* *Scan Ziel IP*
+```
+
+Der Ablauf ist dann wie Folgt: 
+1. Trigger the idle host to respond so that you can record the current IP ID on the idle host.
+2. Send a SYN packet to a TCP port on the target. The packet should be spoofed to appear as if it was coming from the idle host (zombie) IP address.
+3. Trigger the idle machine again to respond so that you can compare the new IP ID with the one received earlier.
+
+**==WICHTIG==**
+Es lohnt sich zu wiederholen, dass dieser Scan als Idle-Scan bezeichnet wird, weil die Auswahl eines Idle-Hosts für die Genauigkeit des Scans unerlässlich ist. Wenn der „Idle-Host“ beschäftigt ist, wären alle zurückgegebenen IP-IDs nutzlos.
 
 # Spoofing und Decoys
 
@@ -245,4 +261,15 @@ Spoofing funktioniert nur in einer minimalen Anzahl von Fällen, in denen bestim
 
 #### Decoys
 
-Eine Ander methode die sehr gut Funktioniert anstelle von Spoofing sind Decoys. hi
+Eine Andere Methode die sehr gut Funktioniert anstelle von Spoofing sind Decoys. Einen Decoy Scan kann man mit dem "-D" Parameter Starten. der "ME" Parameter muss hierbei so Gesetzt werden das er vor der Eigenen IP Steht. 
+
+Beispiel: 
+Hier werden die IP adressen auf Platz 3 und 4 als Random Gesetzt und Adresse 5 via dem "ME" Parameter als eigene Spezifiziert
+
+```
+nmap -D 10.10.0.1,10.10.0.2,RND,RND,ME 10.10.43.56
+```
+
+
+
+
