@@ -28,7 +28,7 @@ Die erste Technik, ist nur auf Linux-Systemen anwendbar, da auf diesen fast imme
 
 Als Erstes verwenden wir den Befehl `python -c ‚'import pty;pty.spawn(„/bin/bash“)'` der Python verwendet, um eine besser ausgestattete Bash-Shell zu erzeugen; dabei ist zu beachten, dass einige Ziele die angegebene Python-Version benötigen. Wenn dies der Fall ist, muss python je nach Bedarf durch python2 oder python3 ersetzt werden. Jetzt sieht unsere Shell etwas hübscher aus, aber wir können immer noch nicht die Tabulator-Autovervollständigung oder die Pfeiltasten benutzen, und Strg + C beendet die Shell immer noch.
 
-Der zweite Schritt ist: `export TERM=xterm` -- damit haben wir Zugriff auf term-Befehle wie clear.
+Der zweite Schritt ist: `export TERM=xterm` -- damit haben wir Zugriff auf term-Befehle wie `clear`.
 
 
 ### Technik 2: rlwrap
