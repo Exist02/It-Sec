@@ -115,4 +115,4 @@ socat OPENSSL:<TARGET-IP>:<TARGET-PORT>,verify=0 -
 Auch hier ist zu beachten, dass selbst für ein Windows-Ziel das Zertifikat mit dem Listener verwendet werden muss, so dass das Kopieren der PEM-Datei für eine Bind-Shell erforderlich ist.
 
 BildBeispiel
-https://imgur.com/RTT0BZ1
+https://imgur.com/X6NDHQN
