@@ -30,6 +30,9 @@ Als Erstes verwenden wir den Befehl `python -c ‚'import pty;pty.spawn(„/bin/
 
 Der zweite Schritt ist: `export TERM=xterm` -- damit haben wir Zugriff auf term-Befehle wie `clear`.
 
+Schließlich (und am wichtigsten) werden wir die Shell mit Strg + Z in den Hintergrund stellen. Zurück in unserem eigenen Terminal verwenden wir `stty raw -echo; fg.` Dies bewirkt zweierlei: Erstens schaltet es unser eigenes Terminal-Echo aus (wodurch wir Zugriff auf die automatische Vervollständigung von Tabulatoren, die Pfeiltasten und Strg + C zum Beenden von Prozessen erhalten). Dann bringt es die Shell in den Vordergrund und beendet den Prozess.
 
+Bebildertes Besipiel:
+https://imgur.com/KL79nHJ
 ### Technik 2: rlwrap
 ### Technik 3: Socat
