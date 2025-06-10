@@ -91,7 +91,7 @@ Die Umgebung des Zielsystems hat Einfluss auf das Tool, das man verwenden kann. 
 - **Linux Smart Enumeration:** [https://github.com/diego-treitos/linux-smart-enumeration](https://github.com/diego-treitos/linux-smart-enumeration)
 - **Linux Priv Checker:** [https://github.com/linted/linuxprivchecker](https://github.com/linted/linuxprivchecker)
 
-# Privilegein Eskalierung: Kernel Exploits
+# Privilegien Eskalierung: Kernel Exploits
 
 Die Eskalation von Privilegien führt im Idealfall zu Root-Rechten. Dies kann manchmal einfach durch das Ausnutzen einer bestehenden Schwachstelle erreicht werden, oder in einigen Fällen durch den Zugriff auf ein anderes Benutzerkonto, das über mehr Privilegien, Informationen oder Zugriff verfügt.
 
@@ -123,5 +123,87 @@ https://imgur.com/aPjED9U
 
 Wenn man diese Option verwendet, um die Datei /etc/shadow zu laden, erhält man eine Fehlermeldung, die die erste Zeile der Datei /etc/shadow enthält.
 
+Anderes Besipiel, Sudo Rechte auf "Nano"
+
+hier Starten wir nano via `sudo nano` danach sorgen wir für Befehl Eingabe via `CTRL R`  `CTRL X` und weiten dann die Rechte via `reset; sh 1>&0 2>&0` aus und schon haben wir Root rechte
+
+
 ##### Ausnutzen von LD_PRELOAD
+
+LD_PRELOAD ist eine Funktion die man auf manchen Systemen wiederfindet, sie wird dafür verwendet es jedem Programm zu ermöglichen gemeinsame Bibilotheken zu verwenden. Dieser Blog-Beitrag gibt einen Eindruck von den Möglichkeiten von LD_PRELOAD (https://rafalcieslak.wordpress.com/2013/04/02/dynamic-linker-tricks-using-ld_preload-to-cheat-inject-features-and-investigate-programs/).
+Wenn die Option „env_keep“ aktiviert ist, können wir eine gemeinsam genutzte Bibliothek erzeugen, die geladen und ausgeführt wird, bevor das Programm ausgeführt wird. Bitte beachten Sie, dass die LD_PRELOAD-Option ignoriert wird, wenn die reale Benutzer-ID nicht mit der effektiven Benutzer-ID übereinstimmt.
+
+Hier Die schritte um die Lücke auszunutzen: 
+- Prüfen ob LD_PRELOAD vorhanden ist (mit der Option env_keep)
+- Schreiben eines einfachen C-Codes, der als Share Object-Datei (.so-Erweiterung) kompiliert wurde
+- Ausführen des Programms mit sudo-Rechten und der Option LD_PRELOAD, die auf unsere .so-Datei zeigt
+
+Beispielhafter C Code: 
+
+```
+#include <stdio.h>  
+#include <sys/types.h>  
+#include <stdlib.h>  
+  
+void _init() {  
+unsetenv("LD_PRELOAD");  
+setgid(0);  
+setuid(0);  
+system("/bin/bash");  
+}
+```
+
+Man kann diesen Code als shell.c speichern und mit gcc unter Verwendung der folgenden Parameter in eine gemeinsam genutzte Objektdatei kompilieren;
+
+```
+gcc -fPIC -shared -o shell.so shell.c -nostartfiles
+```
+
+Man kann die gemeinsame Objektdatei nun verwenden, wenn man ein beliebiges Programm startet, das der Benutzer mit sudo ausführen kann. In unserem Fall können Apache2, find oder fast jedes andere Programm, das wir mit sudo ausführen können, verwendet werden.
+
+Man muss das Programm starten, indem man die Option LD_PRELOAD wie folgt angibt;
+
+```
+sudo LD_PRELOAD=/home/user/ldpreload/shell.so find
+```
+
+Dies führt dazu, dass eine Shell mit Root-Rechten gestartet wird.
+
+# Privilegien Eskalieren: SUID
+
+Ein Großteil der Linux-Privilegien Kontrolle beruht auf der Kontrolle der Interaktionen zwischen Benutzern und Dateien. Dies geschieht mit Hilfe von Berechtigungen. Inzwischen weißt du, dass Dateien Lese-, Schreib- und Ausführungsberechtigungen haben können. Diese werden den Benutzern innerhalb ihrer Berechtigungsstufen erteilt. Dies ändert sich mit SUID (Set-user Identification) und SGID (Set-group Identification). Damit können Dateien mit der Berechtigungsstufe des Dateibesitzers bzw. des Gruppenbesitzers ausgeführt werden.
+
+Diese Dateien haben dann ein "s" Bit was das Spezielle Freigaben Level widerspiegelt. `find / -type f -perm -04000 -ls 2>/dev/null` listet Dateien auf, die SUID- oder SGID-Bits gesetzt haben.
+
+Es empfiehlt sich, die ausführbaren Dateien in dieser Liste mit GTFO Bins (https://gtfobins.github.io) zu vergleichen. Wenn man die Schaltfläche SUID anklickt, werden Binärdateien herausgefiltert, von denen bekannt ist, dass sie ausnutzbar sind, wenn das SUID-Bit gesetzt ist (Link für eine vor gefilterte Liste verwenden https://gtfobins.github.io/#+suid).
+
+Beispiel, es wurde gefunden dass der Nutzer SUID rechte auf BASE64 besitzt. Nach nachschauen auf der Website kann dies wie Folgt ausgenutzt werden 
+
+
+```
+LFILE=*Datei die Gelesen werden soll* bsp /etc/passwd
+base64 "$LFILE" | base64 --decode
+```
+
+Das kann man dann nutzen um z.B. die Passwd und Shadow datei auszulesen und zuu kopieren. Diese Kopien kann man dann zusammenfügen via `unshadow passwd.txt shadow.txt > passwords.txt` und dann in John the Ripper weiterverarbeiten und Knacken via `john /usr/share/wordlists/rockyou.txt password.txt `
+
+# Privilegien Eskalieren: Capabilities
+
+
+Eine weitere Methode, mit der Systemadministratoren die Berechtigungsstufe eines Prozesses oder einer Binärdatei erhöhen können, sind „Fähigkeiten“. Fähigkeiten helfen bei der Verwaltung von Berechtigungen auf einer detaillierteren Ebene. Wenn der SOC-Analyst beispielsweise ein Tool verwenden muss, das Socket-Verbindungen initiieren muss, wäre ein normaler Benutzer dazu nicht in der Lage. Wenn der Systemadministrator diesem Benutzer keine höheren Privilegien einräumen möchte, kann er die Fähigkeiten des Binarys ändern. Dadurch würde das Binary seine Aufgabe erfüllen, ohne dass ein Benutzer mit höheren Rechten benötigt wird.
+
+Die "ManPage" der Capabilities gibt hier auch noch genauen Aufschluss auf die Anwendungsfälle und Optionen
+
+Wir können das Werkzeug getcap verwenden, um die aktivierten Fähigkeiten aufzulisten. Das geht via `getcap -r` da es aber dabei zu vielen Fehlermeldungen kommt empfiehlt sich `getcap -r / 2>/dev/null`.
+
+Beispiel wir haben Festgestellt das VIM sich ausnutzen lässt dies funktioniert dann via 
+
+```
+vim -c ':py3 import os; os.execl("/bin/sh", "sh", "-c", "reset; exec sh")'
+```
+
+Wie auch zuvor kommt der Befehl/die lücke via https://gtfobins.github.io/#+capabilities
+
+
+# Privilegien Eskalieren: Cron Jobs
 
