@@ -76,8 +76,7 @@ find *Option aus beispiel unterhalb*
 | / -perm -222 -type d 2>/dev/null      | Suche nach global beschreibbaren Ordnern                                                                                         |
 | / -perm -o w -type d 2>/dev/null      | Suche nach global beschreibbaren Ordnern                                                                                         |
 | find / -perm -o x -type d 2>/dev/null | Suche nach global aussführbaren Ordnern                                                                                          |
-|                                       |                                                                                                                                  |
-|                                       |                                                                                                                                  |
+
 
 
 # Automatische Enumeration Tools
@@ -113,3 +112,16 @@ Mögliche Ressourcen:
 
 
 # Privilegien Eskalieren: Sudo
+
+Manchmal ist es von Nöten Nutzern das Recht auf Sudo in gewissen kontexten (z.B. SOC analyst der zugriff auf NMAP braucht) zu geben. Hier werden dann aber nicht volle Sudo Rechte vergeben sondern nur Freischaltungen für Spezielle Programme. Worauf zugriff für den Nutzer besteht kann man mit `sudo -l` nachschauen. Zudem ist [https://gtfobins.github.io/](https://gtfobins.github.io/) hier eine gute Ressource da man dort nachlesen kann welche Programme vielleicht sudo rechte haben und wie man die nutzt. 
+
+##### Ausnutzen von Applikations Funktionen 
+
+Im Kontext der Privilegien Eskallation haben Manche Programme Bekannte schwachstellen wie z.B. Apache2 server. In diesem Fall können wir einen „Hack“ verwenden, um Informationen durch Ausnutzung einer Funktion der Anwendung auszuspähen. Wie man weiter unten sehen kann, hat Apache2 eine Option, die das Laden alternativer Konfigurationsdateien unterstützt (-f : Angabe einer alternativen ServerConfigFile).
+
+https://imgur.com/aPjED9U
+
+Wenn man diese Option verwendet, um die Datei /etc/shadow zu laden, erhält man eine Fehlermeldung, die die erste Zeile der Datei /etc/shadow enthält.
+
+##### Ausnutzen von LD_PRELOAD
+
