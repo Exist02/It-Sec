@@ -207,3 +207,11 @@ Wie auch zuvor kommt der Befehl/die lücke via https://gtfobins.github.io/#+capa
 
 # Privilegien Eskalieren: Cron Jobs
 
+Cron- Jobs werden verwendet, um Skripte oder Binärdateien zu bestimmten Zeiten auszuführen. Standardmäßig werden sie mit den Rechten ihres Besitzers und nicht des aktuellen Benutzers ausgeführt. Richtig konfigurierte Cron-Jobs sind zwar nicht von Natur aus angreifbar, können aber unter bestimmten Bedingungen eine Möglichkeit zur Privilegienerweiterung bieten.
+Die Idee ist ganz einfach: Wenn es eine geplante Aufgabe gibt, die mit Root-Rechten ausgeführt wird, und wir das Skript, das ausgeführt wird, ändern können, dann wird unser Skript mit Root-Rechten ausgeführt.
+Cron-Job-Konfigurationen werden als Crontabs (Cron-Tabellen) gespeichert, um die nächste Zeit und das nächste Datum für die Ausführung der Aufgabe zu sehen.
+Jeder Benutzer auf dem System hat seine eigene crontab-Datei und kann bestimmte Aufgaben ausführen, egal ob er angemeldet ist oder nicht. Wie man sich denken kann, besteht unser Ziel darin, einen Cron-Job zu finden, der von root erstellt wurde, und ihn unser Skript ausführen zu lassen, idealerweise eine Shell.
+
+Wiegesagt jeder User hat zugriff auf die Cron-Jobs unter `/etc/crontab`
+
+Hier kann es auch vorkommen das ein Cronjob existiert aber das Script gelöscht wurde das der job ausführen soll. Das kann man dann natürliuch nutzen um ein eigenes Script mit passenden namen an der Passenden stelle einzufügen. Egal ob man jetzt das Scripüt anpasst oder ein neues hinerlegt kann man sich hier nach Herzenswunsch austoben um z.B. Automatisch eine Reverseshell mit Root rechten zu starten
