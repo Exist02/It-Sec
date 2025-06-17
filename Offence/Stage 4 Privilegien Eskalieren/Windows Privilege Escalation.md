@@ -208,4 +208,3 @@ Wenn wir nicht wie bisher direkt in die ausführbaren Dateien eines Dienstes sch
 Bei der Arbeit mit Windows-Diensten tritt ein ganz besonderes Verhalten auf, wenn der Dienst so konfiguriert ist, dass er auf eine „unquotierte“ ausführbare Datei verweist. Mit „unquotiert“ ist gemeint, dass der Pfad der zugehörigen ausführbaren Datei nicht richtig in Anführungszeichen gesetzt ist, um Leerzeichen im Befehl zu berücksichtigen.
 Schauen wir uns als Beispiel den Unterschied zwischen zwei Diensten an (diese Dienste dienen nur als Beispiel und sind auf Ihrem Rechner möglicherweise nicht verfügbar). Der erste Dienst verwendet ein korrektes Anführungszeichen, so dass der SCM zweifelsfrei weiß, dass er die Binärdatei mit dem Namen „C:\Programme\RealVNC\VNC Server\vncserver.exe“, gefolgt von den angegebenen Parametern, ausführen muss:
 
-![[Pasted image 20250617152036.png]]
