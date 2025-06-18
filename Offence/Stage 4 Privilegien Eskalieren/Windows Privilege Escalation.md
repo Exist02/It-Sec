@@ -302,3 +302,42 @@ sc stop THMService
 sc start THMService
 ```
 
+
+# Ausnutzen von Gefährlichen Privilegien
+### Windows Privileges
+
+Privilegien sind Rechte, mit denen ein Konto bestimmte systembezogene Aufgaben ausführen kann. Diese Aufgaben können so einfach sein wie das Recht, den Rechner herunterzufahren, bis hin zu Rechten zur Umgehung einiger DACL-basierter Zugriffskontrollen.
+Jeder Benutzer hat eine Reihe von zugewiesenen Privilegien, die mit dem folgenden Befehl überprüft werden können:
+```
+whoami /priv
+```
+
+Eine vollständige Liste der verfügbaren Berechtigungen auf Windows-Systemen ist hier zu finden (https://learn.microsoft.com/en-us/windows/win32/secauthz/privilege-constants). Vom Standpunkt eines Angreifers aus sind nur die Privilegien von Interesse, die eine Eskalation im System ermöglichen. Eine umfassende Liste der ausnutzbaren Privilegien kann auf dem Github-Projekt Priv2Admin gefunden werden. https://github.com/gtworek/Priv2Admin
+
+### SeBackup / SeRestore
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Ausnutzen von Software mit Schwachstellen
+
+### Unpatched Software
+  
+Die auf dem Zielsystem installierte Software kann verschiedene Möglichkeiten der Privilegienerweiterung bieten. Wie bei den Treibern aktualisieren Unternehmen und Benutzer diese möglicherweise nicht so oft wie das Betriebssystem. Mit dem Tool wmic kann man die auf dem Zielsystem installierte Software und ihre Versionen auflisten. Der folgende Befehl gibt die Informationen aus, die er über die installierte Software sammeln kann (es kann etwa eine Minute dauern, bis er fertig ist):
+```
+wmic product get name,version,vendor
+```
+
+Zu beachten ist, dass der Befehl wmic product möglicherweise nicht alle installierten Programme zurückgibt. Je nachdem, wie einige der Programme installiert wurden, sind sie hier möglicherweise nicht aufgeführt. Es lohnt sich immer, Desktop-Verknüpfungen, verfügbare Dienste oder generell alle Spuren zu überprüfen, die auf das Vorhandensein zusätzlicher Software hinweisen, die anfällig sein könnte. Sobald wir Informationen über die Produktversionen gesammelt haben, können wir jederzeit online auf Websites wie exploit-db, packet storm oder dem guten alten Google nach vorhandenen Exploits für die installierte Software suchen, neben vielen anderen.
