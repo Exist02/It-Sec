@@ -52,3 +52,42 @@ gobuster dns -d example.thm -w /usr/share/wordlists/SecLists/Discovery/DNS/subdo
 | -------------- | --------------------------------------- |
 | -d example.thm | setzt die Ziel Domain auf "example.thm" |
 | -w *wordlist*  | verweist mit Pfad auf die Wordlist      |
+
+
+## VHOST Mode
+
+Bruteforce Virtual Hosts       
+
+Virtual Hosts können mehrere Websites auf einem Host haben die dann alle Gebruteforced werden          
+
+gobuster vhost --help
+
+| Short Flag | Long Flag         | Description                                                                                           |
+| ---------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
+| -u         | --url             | Specifies the base URL (target domain) for brute-forcing virtual hostnames.                           |
+|            | --append-domain   | Appends the base domain to each word in the wordlist (e.g., word.example.com).                        |
+| -m         | --method          | Specifies the HTTP method to use for the requests (e.g., GET, POST).                                  |
+|            | --domain          | Appends a domain to each wordlist entry to form a valid hostname (useful if not provided explicitly). |
+|            | --exclude-length  | Excludes results based on the length of the response body (useful to filter out unwanted responses).  |
+| -r         | --follow-redirect | Follows HTTP redirects (useful for cases where subdomains may redirect).                              |
+### Syntax               
+
+```
+gobuster vhost -u "http://example.thm" -w /path/to/wordlist                     
+```
+-u "*URL*"        Verweist auf die URL
+-w *wordlist* verweist mit Pfad auf die Wordlist 
+
+
+Beispiel mit Zusatz Flags                      
+
+```
+gobuster vhost -u "http://10.10.169.142" --domain example.thm -w /usr/share/wordlists/SecLists/Discovery/DNS/subdomains-top1million-5000.txt --append-domain --exclude-length 250-320                       
+```
+
+gobuster vhost                                      startet Gobuster im vhost mode
+-u "domain"                                           setzt target domain
+-w /word/list                                          setzt wordlist
+--domain example.thm                          setzt die Top- und Second-Level-Domains im Teil Hostname: der Anfrage auf example.thm.
+--append-domain                                  fügt die konfigurierte Domäne an jeden Eintrag in der Wortliste an. Wenn dieses Flag nicht konfiguriert ist, würde der eingestellte Hostname www, blog usw. lauten. Dies führt dazu, dass der Befehl nicht korrekt funktioniert und falsch positive Ergebnisse anzeigt.
+--exclude-length                                   entfernt False Positives
