@@ -23,7 +23,7 @@ Bevor man einen Angriff Starten kann muss man festlegen an welchen stellen die P
 - The `Auto §` button automatically attempts to identify the most likely positions based on the request. This feature is helpful if we previously cleared the default positions and want them back
 
 **Payloads**:
-Dieser Tab wird auch nochmalö in 4 Teile Aufgeteilt. 
+Dieser Tab wird auch nochmal in 4 Teile Aufgeteilt. 
 1. Payload Sets. 
 - In diesem Abschnitt können wir die Position auswählen, für die wir ein Payload-Set konfigurieren wollen, und die Art der Payload auswählen, die wir verwenden wollen.
 - Bei Angriffstypen, die nur ein einziges Payload-Set erlauben (Sniper oder Rammbock), gibt es im Dropdown-Menü „Payload Set“ nur eine Option, unabhängig von der Anzahl der definierten Positionen.
