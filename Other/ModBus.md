@@ -57,7 +57,8 @@ pip3 install pymodbus==1.5.2
 Generell weitere Infos zu modbus gibt es hier: 
 https://www.csimn.com/CSI_pages/Modbus101.html
 
-Gutes Script um zu schauen was aktuell passiert in der Regestry: 
+Gutes Script um zu schauen was aktuell passiert in der Registry: 
+
 ```
 #!/usr/bin/env python3
 
@@ -74,3 +75,63 @@ while True:
     time.sleep(1)
 
 ```
+
+Syntax zur Ausführung:
+```
+python3 script.py 10.10.232.218
+```
+
+Script zum Ändern von Werten in der Regestry:
+```
+#!/usr/bin/env python3
+
+import sys
+from pymodbus.client.sync import ModbusTcpClient as ModbusClient
+from pymodbus.exceptions import ModbusIOException
+
+def main():
+    if len(sys.argv) < 4:
+        print("Usage: python3 write_register.py <IP> <Register> <Value>")
+        sys.exit(1)
+
+    ip = sys.argv[1]
+    try:
+        registry = int(sys.argv[2])
+        value = int(sys.argv[3])
+    except ValueError:
+        print("Register and value must be integers.")
+        sys.exit(1)
+
+    client = ModbusClient(ip, port=502)
+
+    if not client.connect():
+        print(f"Failed to connect to {ip}:502")
+        sys.exit(1)
+
+    try:
+        print(f"Writing value {value} to register {registry} at {ip}...")
+        result = client.write_register(registry, value)
+
+        if result.isError():
+            print("Write failed:", result)
+        else:
+            print("Write successful.")
+
+    except ModbusIOException as e:
+        print(f"Modbus IO Exception: {e}")
+
+    finally:
+        client.close()
+        print("Connection closed.")
+
+if __name__ == "__main__":
+    main()
+
+```
+
+Beispiel Ausführung des Scripts:
+```
+python3 write_register.py 10.10.232.218 100 42
+```
+
+→ schreibt den Wert `42` in Register `100` auf Gerät `10.10.232.218`.
