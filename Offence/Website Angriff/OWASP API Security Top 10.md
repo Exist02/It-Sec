@@ -103,19 +103,58 @@ Bob erkannte seinen Fehler, aktualisierte den Endpunkt und erstellte einen gült
 # Schwachstelle 4 -Lack of Resource & Rate Limiting
 
 ## Wie Kann es zu der Schwachstelle kommen? 
+Fehlende Ressourcen und  rate limiting  bedeuten, dass APIs keine Beschränkung der Häufigkeit der von Kunden angeforderten Ressourcen oder der Dateigröße durchsetzen, was die Leistung des API-Servers stark beeinträchtigt und zu DoS (Denial of Service) oder Nichtverfügbarkeit des Dienstes führt. Stellen Sie sich ein Szenario vor, in dem eine API-Beschränkung nicht durchgesetzt wird, so dass ein Benutzer (in der Regel ein Eindringling) mehrere GB-Dateien gleichzeitig hochladen oder eine beliebige Anzahl von Anfragen pro Sekunde stellen kann. Solche API-Endpunkte führen zu einer übermäßigen Nutzung von Netzwerk-, Speicher-, Rechenressourcen usw.
 
-text
+Heutzutage nutzen Angreifer solche Angriffe, um die Nichtverfügbarkeit von Diensten für ein Unternehmen sicherzustellen und so den Ruf der Marke durch erhöhte Ausfallzeiten zu schädigen. Ein einfaches Beispiel ist die Nichteinhaltung des Captcha-Systems auf dem Anmeldeformular, das es jedem ermöglicht, über ein kleines, in Python geschriebenes Skript zahlreiche Abfragen an die Datenbank zu stellen.
 
 ## Impact 
 
-text
+Der Angriff zielt in erster Linie auf die Verfügbarkeitsgrundsätze der Sicherheit ab (CIA Triade); er kann jedoch auch den Ruf der Marke schädigen und finanzielle Verluste verursachen.
 
 ## Mitigation Measures
 
-text
+- Sicherstellen, dass ein Captcha verwendet wird, um Anfragen von automatisierten Skripten und Bots zu vermeiden.
+- Implementierung eines Limits, d.h. wie oft ein Client eine API innerhalb einer bestimmten Zeit aufrufen kann und sofortige Benachrichtigung, wenn das Limit überschritten wird.
+- Legen Sie die maximale Datengröße für alle Parameter und Payloads fest, d. h. die maximale Länge von Strings und die maximale Anzahl von Array-Elementen.
 
 
 ## Praktisches Beispiel
 
 Rahmen des Beispiels 
 Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. 
+
+- Verwenden Sie weiterhin den Chrome-Browser und Talend API Tester für das Debugging in der VM
+- Das Unternehmen MHT kaufte einen E-Mail-Marketingplan (20.000 E-Mails pro Monat) für den Versand von Marketing- und Passwort-Wiederherstellungs-E-Mails usw. Bob erkannte, dass er erfolgreich eine Login-API entwickelt hatte, aber es muss eine "Passwort vergessen"-Option geben, die zur Wiederherstellung eines Kontos verwendet werden kann.
+- Er begann mit der Erstellung eines Endpunkts `/apirule4/sendOTP_v,` der einen 4-stelligen Zahlencode an die E-Mail-Adresse des Benutzers sendet. Ein authentifizierter Benutzer verwendet dieses One Time Password (OTP), um das Konto wiederherzustellen.
+- Was ist hier das Problem? Bob hat keine Ratenbegrenzung für den Endpunkt aktiviert. Ein böswilliger Akteur kann ein kleines Skript schreiben und den Endpunkt mit brachialer Gewalt aushebeln, um viele E-Mails in wenigen Sekunden zu versenden und den kürzlich erworbenen E-Mail-Marketingplan des Unternehmens zu nutzen (finanzieller Schaden).
+
+Schließlich fand Bob eine intelligente Lösung (`/apirule4/sendOTP_s`) und aktivierte die Ratenbegrenzung, so dass der Benutzer 2 Minuten warten muss, um erneut ein OTP-Token anzufordern.
+
+
+
+# Schwachstelle 5 -Broken Function Level Authorisation
+## Wie Kann es zu der Schwachstelle kommen? 
+
+Broken Function Level Authorisation reflects a scenario where a low privileged user (e.g., sales) bypasses system checks and gets access to **confidential data by impersonating a high privileged user (Admin)**. Consider a scenario of complex access control policies with various hierarchies, roles, and groups and a vague separation between regular and administrative functions leading to severe authorisation flaws. By taking advantage of these issues, the intruders can easily access the unauthorised resources of another user or, most dangerously – the administrative functions.   
+
+Broken Function Level Authorisation reflects IDOR permission, where a user, most probably an intruder, can perform administrative-level tasks. APIs with complex user roles and permissions that can span the hierarchy are more prone to this attack.
+
+## Impact 
+
+Der Angriff zielt in erster Linie auf die Sicherheitsgrundsätze der Autorisierung und der Nichtabstreitbarkeit ab. Eine gebrochene Autorisierung auf funktionaler Ebene kann dazu führen, dass sich ein Eindringling als autorisierter Benutzer ausgibt und der böswillige Akteur administrative Rechte erhält, um sensible Aufgaben auszuführen.
+
+## Mitigation Measures
+
+- Stellen Sie sicher, dass alle Berechtigungssysteme ordnungsgemäß konzipiert und getestet werden und verweigern Sie standardmäßig jeden Zugang.
+- Stellen Sie sicher, dass die Operationen nur den Nutzern erlaubt sind, die der autorisierten Gruppe angehören.
+- Stellen Sie sicher, dass die API-Endpunkte auf Schwachstellen in Bezug auf die Autorisierung auf funktionaler Ebene überprüft werden und berücksichtigen Sie die Geschäftslogik der Anwendungen und der Gruppenhierarchie.
+
+
+## Praktisches Beispiel
+
+Rahmen des Beispiels 
+Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. 
+
+- Verwenden Sie weiterhin den Chrome-Browser und Talend API Tester für das Debugging in der VM.
+- Bob wurde mit einer weiteren Aufgabe betraut, ein Admin-Dashboard für die Führungskräfte des Unternehmens zu entwickeln, damit diese alle Mitarbeiterdaten einsehen und bestimmte Aufgaben ausführen können.
+- Bob entwickelte einen Endpunkt `/apirule5/users_v`, um die Daten aller Mitarbeiter aus der Datenbank abzurufen. Zum Schutz fügte er eine weitere Sicherheitsebene hinzu, indem er einen speziellen Header isAdmin in jede Anfrage einfügte. Die API holt nur dann Mitarbeiterinformationen aus der Datenbank, wenn `isAdmin=1` und das Autorisierungs-Token korrekt sind. Das `Autorisierungs-Token` für HR-Benutzer Alice lautet `YWxpY2U6dGVzdCFAISM6Nzg5Nzg=`.
