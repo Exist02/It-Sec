@@ -92,3 +92,30 @@ Ein böswilliger Akteur kann den Datenverkehr erfolgreich ausspähen und leicht 
 
 Rahmen des Beispiels 
 Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. 
+
+- Verwenden Sie weiterhin den Chrome-Browser und Talend API Tester für das Debugging in der VM
+- Das Unternehmen MHT führte ein kommentarbasiertes Webportal ein, das die Kommentare der Benutzer aufnimmt und in der Datenbank speichert, sowie andere Informationen wie Standort, Geräteinformationen usw., um die Benutzerfreundlichkeit zu verbessern.
+- Bob wurde damit beauftragt, einen Endpunkt zu entwickeln, der die Kommentare der Benutzer auf der Haupt-Website des Unternehmens anzeigt. Er entwickelte einen Endpunkt `apirule3/comment_v/{id}`, der alle für einen Kommentar verfügbaren Informationen aus der Datenbank abruft. Bob nahm an, dass der Front-End-Entwickler die Informationen herausfiltern würde, während er sie auf der Haupt-Website des Unternehmens anzeigt.
+- Was ist hier das Problem? Die API sendet mehr Daten als gewünscht. Anstatt sich auf einen Front-End-Ingenieur zu verlassen, um Daten herauszufiltern, müssen nur relevante Daten aus der Datenbank gesendet werden.
+
+Bob erkannte seinen Fehler, aktualisierte den Endpunkt und erstellte einen gültigen Endpunkt `/apirule3/comment_s/{id},` der nur die erforderlichen Informationen an den Entwickler zurückgibt (wie unten gezeigt).
+
+# Schwachstelle 4 -Lack of Resource & Rate Limiting
+
+## Wie Kann es zu der Schwachstelle kommen? 
+
+text
+
+## Impact 
+
+text
+
+## Mitigation Measures
+
+text
+
+
+## Praktisches Beispiel
+
+Rahmen des Beispiels 
+Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. 
