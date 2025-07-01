@@ -11,7 +11,7 @@ API steht für Anwendungsprogrammierschnittstelle. Es handelt sich um eine Middl
 
  - PIXLR- Datenleck: Im Januar 2021 kam es bei PIXLR, einer Online-Fotoeditor-App, zu einem Datenleck, von dem rund 1,9 Millionen Nutzer betroffen waren. Alle von den Hackern gesammelten Daten wurden in einem Dark-Web-Forum veröffentlicht, darunter Nutzernamen, E-Mail-Adressen, Länder und gehashte Passwörter.
 
-# Schwachstelle 1 -Broken Object Level Authorisation (BOLA)
+# Schwachstelle 1 -Broken Object Level Autorisation (BOLA)
 
 ## Wie kann sowas Passieren? 
 Im Allgemeinen werden API-Endpunkte für die gängige Praxis des Abrufs und der Bearbeitung von Daten über Objektkennungen verwendet. BOLA bezieht sich auf Insecure Direct Object Reference (IDOR) - ein Szenario, bei dem der Benutzer die Eingabefunktionalität verwendet und Zugang zu Ressourcen erhält, für die er keine Zugriffsberechtigung hat. In einer API werden solche Kontrollen in der Regel durch die Programmierung in Modellen (Model-View-Controller Architecture) auf der Code-Ebene implementiert.
@@ -40,4 +40,55 @@ Ablauf:
 - Wenn man in der VM ein gültiges `Autorisierungs-Token` hinzufügt und `http://localhost:80/MHT/apirule1_s/user/1` aufruft, kann man nur dann die richtigen Ergebnisse erhalten. Außerdem wird bei allen API-Aufrufen mit einem ungültigen Token die Fehlermeldung `403 Forbidden` angezeigt.
 
 
-# Schwachstelle 2 -Broken User Authentification (BUA)
+# Schwachstelle 2 -Broken User Authentifikation (BUA)
+
+## Wie Kann die Schwachstelle Auftreten?
+Die Benutzerauthentifizierung ist der wichtigste Aspekt bei der Entwicklung jeder Anwendung, die sensible Daten enthält. Eine fehlerhafte Benutzerauthentifizierung (Broken User Authentication, BUA) ist ein Szenario, in dem ein API-Endpunkt einem Angreifer den Zugriff auf eine Datenbank oder die Erlangung höherer Privilegien als die bestehenden ermöglicht. Der Hauptgrund für BUA ist entweder eine ungültige Implementierung der Authentifizierung, wie z. B. die Verwendung falscher E-Mail-/Passwort-Abfragen usw., oder das Fehlen von Sicherheitsmechanismen wie Autorisierungs-Header, Token usw.
+
+Stellen man sich ein Szenario vor, in dem ein Angreifer die Fähigkeit erlangt, eine Authentifizierungs-API zu missbrauchen; dies führt schließlich zu Datenlecks, Löschung, Änderung oder sogar zur vollständigen Übernahme des Kontos durch den Angreifer. In der Regel haben Hacker spezielle Skripte erstellt, um Profile von Benutzern auf einem System zu erstellen, sie aufzuzählen und Authentifizierungsendpunkte zu identifizieren. Ein schlecht implementiertes Authentifizierungssystem kann dazu führen, dass ein beliebiger Benutzer die Identität eines anderen Benutzers annimmt.
+
+## Impact
+Bei einer fehlerhaften Benutzerauthentifizierung können Angreifer die authentifizierte Sitzung oder den Authentifizierungsmechanismus kompromittieren und leicht auf sensible Daten zugreifen. Böswillige Akteure können sich als autorisierte Personen ausgeben und unerwünschte Aktivitäten durchführen, einschließlich einer vollständigen Übernahme des Kontos.
+
+## Mitigation Measures
+- Garantieren Sie komplexe Passwörter mit höherer Entropie für Endbenutzer.
+- Geben Sie keine sensiblen Anmeldedaten in GET- oder POST-Anfragen preis.
+- Aktivieren Sie starke JSON-Web-Tokens (JWT), Autorisierungs-Header usw.
+- Sorgen Sie für die Implementierung einer Multifaktor-Authentifizierung (wo möglich), einer Kontosperre oder eines Captcha-Systems, um Brute-Force-Angriffe auf bestimmte Benutzer zu verhindern. 
+- Sicherstellen, dass Passwörter nicht im Klartext in der Datenbank gespeichert werden, um eine weitere Übernahme des Kontos durch den Angreifer zu verhindern.
+
+## Praktisches Beispiel: 
+
+Rahmen des Beispiels 
+Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. 
+
+- Bob weiß, dass die Authentifizierung von entscheidender Bedeutung ist, und wurde beauftragt, einen API-Endpunkt `apirule2/user/login_v` zu entwickeln, der die Authentifizierung anhand der angegebenen E-Mail und des Passworts vornimmt.
+- Der Endpunkt gibt ein Token zurück, das als Authorization-Token-Header (GET-Anfrage) an apirule2/user/details weitergegeben wird, um Details zu dem jeweiligen Mitarbeiter anzuzeigen. Bob hat den Login-Endpunkt erfolgreich entwickelt; allerdings hat er nur die E-Mail zur Validierung des Benutzers aus der Benutzertabelle verwendet und das Passwortfeld in der SQL-Abfrage ignoriert. Ein Angreifer benötigt nur die E-Mail-Adresse des Opfers, um ein gültiges Token zu erhalten oder das Konto zu übernehmen.
+- In der VM können Sie dies testen, indem Sie eine `POST`-Anfrage an `http://localhost:80/MHT/apirule2/user/login_v` mit E-Mail und Passwort in den Formularparametern senden.
+- Wie wir sehen können, hat der verwundbare Endpunkt ein Token erhalten, welcher an `/apirule2/user/details` weitergeleitet werden kann, um Details über einen Benutzer zu erhalten.
+
+Das sieht dann wie Folgt aus: 
+https://imgur.com/bgdEqOb
+
+Um dies zu beheben, werden wir die Logik der Anmeldeabfrage aktualisieren und sowohl E-Mail als auch Passwort für die Validierung verwenden. Der Endpunkt /apirule2/user/login_s ist ein gültiger Endpunkt, der den Benutzer sowohl auf der Grundlage des Passworts als auch der E-Mail autorisiert.
+
+# Schwachstelle 3 -Exzessive Daten Exposure
+
+## Wie Kann es zu der Schwachstelle kommen? 
+
+Eine übermäßige Offenlegung von Daten liegt vor, wenn Anwendungen dazu neigen, dem Benutzer über eine API-Antwort mehr als die gewünschten Informationen preiszugeben. Die Anwendungsentwickler neigen dazu, alle Objekteigenschaften (unter Berücksichtigung der generischen Implementierungen) offenzulegen, ohne deren Empfindlichkeitsgrad zu berücksichtigen. Sie überlassen dem Front-End-Entwickler die Aufgabe des Filterns, bevor sie dem Benutzer angezeigt werden. Folglich kann ein Angreifer die Antwort über die API abfangen und schnell die gewünschten vertraulichen Daten extrahieren. Die Laufzeiterkennungs-Tools oder die allgemeinen Sicherheitsscan-Tools können eine Warnung über diese Art von Schwachstelle ausgeben. Sie können jedoch nicht zwischen legitimen Daten, die zurückgegeben werden sollen, und sensiblen Daten unterscheiden.
+
+## Impact 
+
+Ein böswilliger Akteur kann den Datenverkehr erfolgreich ausspähen und leicht an vertrauliche Daten gelangen, einschließlich persönlicher Daten wie Kontonummern, Telefonnummern, Zugangstoken und vieles mehr. Typischerweise antworten APIs mit sensiblen Token, die später verwendet werden können, um Anrufe an andere kritische Endpunkte zu tätigen.
+
+## Mitigation Measures
+
+- Überlassen Sie die Filterung sensibler Daten niemals dem Front-End-Entwickler.
+- Stellen Sie sicher, dass die Antworten der API von Zeit zu Zeit überprüft werden, um zu gewährleisten, dass nur legitime Daten zurückgegeben werden und um zu prüfen, ob sie ein Sicherheitsproblem darstellen.
+- Vermeiden Sie die Verwendung generischer Methoden wie to_string() und to_json().
+- Verwenden Sie API-Endpunkttests durch verschiedene Testfälle und überprüfen Sie durch automatisierte und manuelle Tests, ob die API zusätzliche Daten auslässt.
+## Praktisches Beispiel
+
+Rahmen des Beispiels 
+Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. 
