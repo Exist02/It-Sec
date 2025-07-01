@@ -49,7 +49,7 @@ http://webapp.thm/index.php?lang=/etc/passwd/.
 
 ### LFI
 
-Kann wie Path Traversal die dot dot Slash methode Benutzen. Kann aber auch schon jenachdem einfachere Variante nutzen 
+Kann wie Path Traversal die dot dot Slash methode Benutzen. Kann aber auch schon je nach dem einfachere Variante nutzen 
 
 
 wie z.B. die gesuchte Datei an die URL anheften. Dies funktioniert wenn im Query code kein Direcory Spezifiziert ist. 
