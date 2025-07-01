@@ -20,10 +20,24 @@ Im Allgemeinen werden API-Endpunkte für die gängige Praxis des Abrufs und der 
 
 Das Fehlen von Kontrollen zur Verhinderung des unbefugten Zugriffs auf Objekte kann zu Datenlecks und in einigen Fällen zur vollständigen Übernahme von Konten führen. Die in der Datenbank gespeicherten Nutzer- oder Abonnentendaten spielen eine entscheidende Rolle für den Ruf der Marke eines Unternehmens; wenn solche Daten über das Internet durchsickern, kann dies zu erheblichen finanziellen Verlusten führen.
 
-## Mitigation Meassures 
+## Mitigation Measures 
 
 - Ein Autorisierungsmechanismus, der sich auf Benutzerrichtlinien und Hierarchien stützt, sollte angemessen implementiert sein.
 - Strenge Zugangskontrollmethoden, um zu prüfen, ob der angemeldete Benutzer berechtigt ist, bestimmte Aktionen durchzuführen.
 - Förderung der Verwendung völlig zufälliger Werte (starke Ver- und Entschlüsselungsmechanismen) für nahezu unvorhersehbare Token.
 
 ## Praktisches Beispiel
+
+Rahmen des Beispiels 
+Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. 
+
+Ablauf:
+- Öffnen Sie die VM. Sie werden feststellen, dass der Chrome-Browser und die Anwendung Talend API Tester automatisch ausgeführt werden, die wir zum Debuggen der API-Endpunkte verwenden werden.
+- Bob arbeitet als API-Entwickler im Unternehmen MHT und hat einen Endpunkt `/apirule1/users/{ID}` entwickelt, der es anderen Anwendungen oder Entwicklern ermöglicht, Informationen durch Senden einer Mitarbeiter-ID anzufordern. In der VM können Sie Ergebnisse anfordern, indem Sie `GET`-Anforderungen an `http://localhost:80/MHT/apirule1_v/user/1` senden.
+- Was ist das Problem mit dem obigen API-Aufruf? Das Problem besteht darin, dass der Endpunkt eingehende API-Aufrufe nicht validiert, um zu bestätigen, dass die Anforderung gültig ist. Es wird nicht geprüft, ob die Person, die den API-Aufruf anfordert, ihn anfordern kann oder nicht.
+- Die Lösung für dieses Problem ist recht einfach: Bob wird einen Autorisierungsmechanismus implementieren, mit dem er feststellen kann, wer API-Aufrufe tätigen kann, um auf Mitarbeiter-ID-Informationen zuzugreifen.
+- Der Zweck wird durch Zugriffs-Tokens oder Autorisierungs-Tokens in der Kopfzeile erreicht. Im obigen Beispiel fügt Bob ein Autorisierungs-Token hinzu, so dass nur Header mit gültigen Autorisierungs-Tokens einen Aufruf an diesen Endpunkt tätigen können.
+- Wenn man in der VM ein gültiges `Autorisierungs-Token` hinzufügt und `http://localhost:80/MHT/apirule1_s/user/1` aufruft, kann man nur dann die richtigen Ergebnisse erhalten. Außerdem wird bei allen API-Aufrufen mit einem ungültigen Token die Fehlermeldung `403 Forbidden` angezeigt.
+
+
+# Schwachstelle 2 -Broken User Authentification (BUA)
