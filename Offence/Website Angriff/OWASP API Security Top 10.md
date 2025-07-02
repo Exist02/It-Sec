@@ -1,15 +1,23 @@
 # Understanding APIs eine Auffrischung
 
-### Was ist eine API und warum ist das Wichtig?
+## Was ist eine API und warum ist das Wichtig?
 
 API steht für Anwendungsprogrammierschnittstelle. Es handelt sich um eine Middleware, die die Kommunikation zwischen zwei Softwarekomponenten unter Verwendung einer Reihe von Protokollen und Definitionen erleichtert. Im API-Kontext bezieht sich der Begriff „Anwendung“ auf jede Software mit einer bestimmten Funktionalität, und „Schnittstelle“ bezieht sich auf den Dienstleistungsvertrag zwischen zwei Anwendungen, der die Kommunikation über Anfragen und Antworten ermöglicht. Die API-Dokumentation enthält alle Informationen darüber, wie die Entwickler diese Antworten und Anfragen strukturiert haben. Die Bedeutung von APIs für die Anwendungsentwicklung lässt sich in einem einzigen Satz zusammenfassen: API ist ein Baustein für die Entwicklung komplexer und unternehmensweiter Anwendungen.
 
-###  Kürzliche Data Breaches durch APIs
+##  Kürzliche Data Breaches durch APIs
+
 - LinkedIn-Datenpanne: Im Juni 2021 wurden die Daten von über 700 Millionen LinkedIn-Nutzern in einem Dark-Web-Forum zum Verkauf angeboten, die durch Ausnutzung der LinkedIn-API abgegriffen wurden. Der Hacker veröffentlichte eine Stichprobe von 1 Million Datensätzen, um die Legitimität der LinkedIn-Verletzung zu bestätigen. Diese enthielt die vollständigen Namen der Nutzer, E-Mail-Adressen, Telefonnummern, Geolocation-Datensätze, LinkedIn-Profil-Links, Informationen zur Berufserfahrung und andere Kontodaten für soziale Medien.
 
 - Twitter- Datenleck: Im Juni 2022 wurden die Daten von mehr als 5,4 Millionen Twitter-Nutzern zum Verkauf im Dark Web freigegeben. Die Hacker nutzten dazu eine Sicherheitslücke in der Twitter-API, die den Twitter-Handle mit einer Handynummer oder einer E-Mail verglich.
 
  - PIXLR- Datenleck: Im Januar 2021 kam es bei PIXLR, einer Online-Fotoeditor-App, zu einem Datenleck, von dem rund 1,9 Millionen Nutzer betroffen waren. Alle von den Hackern gesammelten Daten wurden in einem Dark-Web-Forum veröffentlicht, darunter Nutzernamen, E-Mail-Adressen, Länder und gehashte Passwörter.
+
+
+
+Man kann mit Fug und Recht behaupten, dass mehr als die Hälfte der Top-10-Liste der OWASP-API-Sicherheit für die Autorisierung und Authentifizierung relevant ist. In den meisten Fällen werden API-Systeme aufgrund von Fehlern in den Autorisierungs- und Authentifizierungsmechanismen und Fehlkonfigurationen der Sicherheit gehackt.
+
+Kurz gesagt, API-Entwickler müssen APIs gemäß den besten Cybersicherheitspraktiken absichern. Den Modulen wie Anmeldung, rollenbasierter Zugriff, Einstellung von Benutzerprofilen usw. muss mehr Bedeutung beigemessen werden, da böswillige Akteure dazu neigen, bekannte Endpunkte anzusteuern, um Zugang zum System zu erhalten.
+
 
 # Schwachstelle 1 -Broken Object Level Autorisation (BOLA)
 
@@ -158,3 +166,112 @@ Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von AP
 - Verwenden Sie weiterhin den Chrome-Browser und Talend API Tester für das Debugging in der VM.
 - Bob wurde mit einer weiteren Aufgabe betraut, ein Admin-Dashboard für die Führungskräfte des Unternehmens zu entwickeln, damit diese alle Mitarbeiterdaten einsehen und bestimmte Aufgaben ausführen können.
 - Bob entwickelte einen Endpunkt `/apirule5/users_v`, um die Daten aller Mitarbeiter aus der Datenbank abzurufen. Zum Schutz fügte er eine weitere Sicherheitsebene hinzu, indem er einen speziellen Header isAdmin in jede Anfrage einfügte. Die API holt nur dann Mitarbeiterinformationen aus der Datenbank, wenn `isAdmin=1` und das Autorisierungs-Token korrekt sind. Das `Autorisierungs-Token` für HR-Benutzer Alice lautet `YWxpY2U6dGVzdCFAISM6Nzg5Nzg=`.
+- Wir sehen, dass Alice ein Nicht-Admin-Benutzer (HR) ist, aber alle Mitarbeiterdaten sehen kann, indem sie benutzerdefinierte Anfragen an den Endpunkt mit `isAdmin-Wert = 1` stellt.
+
+Das Problem kann programmatisch gelöst werden, indem korrekte Autorisierungsregeln implementiert und die funktionalen Rollen der einzelnen Benutzer in der Datenbank während der Abfrage überprüft werden. Bob hat einen weiteren Endpunkt `/apirule5/users_s` implementiert, der die Rolle jedes Benutzers überprüft und die Daten der Mitarbeiter nur anzeigt, wenn die Rolle Admin ist.
+
+
+
+
+# Schwachstelle 6 -Mass Assignment
+
+## Wie Kann es zu der Schwachstelle kommen? 
+
+text
+
+## Impact 
+
+text
+
+## Mitigation Measures
+
+text
+
+
+## Praktisches Beispiel
+
+Rahmen des Beispiels 
+Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. 
+
+
+
+# Schwachstelle 7 -Security Misconfiguration
+
+## Wie Kann es zu der Schwachstelle kommen? 
+
+text
+
+## Impact 
+
+text
+
+## Mitigation Measures
+
+text
+
+
+## Praktisches Beispiel
+
+Rahmen des Beispiels 
+Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. **
+
+
+# Schwachstelle 8 -Injection
+
+## Wie Kann es zu der Schwachstelle kommen? 
+
+text
+
+## Impact 
+
+text
+
+## Mitigation Measures
+
+text
+
+
+## Praktisches Beispiel
+
+Rahmen des Beispiels 
+Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. 
+
+# Schwachstelle 9 -Improper Assets Management
+## Wie Kann es zu der Schwachstelle kommen? 
+
+text
+
+## Impact 
+
+text
+
+## Mitigation Measures
+
+text
+
+
+## Praktisches Beispiel
+
+Rahmen des Beispiels 
+Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. 
+
+
+# Schwachstelle 10 -Insufficient Logging & Monitoring
+
+## Wie Kann es zu der Schwachstelle kommen? 
+
+text
+
+## Impact 
+
+text
+
+## Mitigation Measures
+
+text
+
+
+## Praktisches Beispiel
+
+Rahmen des Beispiels 
+Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. 
