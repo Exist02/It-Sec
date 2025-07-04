@@ -177,15 +177,20 @@ Das Problem kann programmatisch gelöst werden, indem korrekte Autorisierungsreg
 
 ## Wie Kann es zu der Schwachstelle kommen? 
 
-text
+Die Massenzuweisung spiegelt ein Szenario wider, bei dem clientseitige Daten automatisch mit serverseitigen Objekten oder Klassenvariablen verbunden werden. Hacker nutzen diese Funktion jedoch aus, indem sie zunächst die Geschäftslogik der Anwendung verstehen und speziell gestaltete Daten an den Server senden, sich administrativen Zugriff verschaffen oder manipulierte Daten einfügen. Diese Funktion wird in den neuesten Frameworks wie Laravel, Code Ignitor usw. häufig ausgenutzt.
+
+Nehmen wir das Dashboard eines Benutzerprofils, in dem Benutzer ihr Profil aktualisieren können, z. B. die zugehörige E-Mail, den Namen, die Adresse usw. Der Benutzername des Benutzers ist ein schreibgeschütztes Attribut und kann nicht geändert werden; ein böswilliger Akteur kann jedoch den Benutzernamen bearbeiten und das Formular übermitteln. Wenn die erforderliche Filterung auf der Serverseite (Modell) nicht aktiviert ist, werden die Daten einfach in die Datenbank eingefügt/aktualisiert.
+
 
 ## Impact 
 
-text
+Der Angriff kann zu Datenmanipulationen und zur Ausweitung der Rechte eines normalen Benutzers auf einen Administrator führen.
 
 ## Mitigation Measures
 
-text
+- Bevor man ein Framework verwendet, muss man untersuchen, wie die Einfügungen und Aktualisierungen im Backend durchgeführt werden. Im Laravel-Framework entschärfen fillable und guarded arrays die oben genannten Szenarien.
+- Vermeiden Sie die Verwendung von Funktionen, die eine Eingabe von einem Client automatisch an Codevariablen binden.
+- Lassen Sie nur die Eigenschaften zu, die von der Client-Seite aktualisiert werden müssen.
 
 
 ## Praktisches Beispiel
@@ -193,85 +198,126 @@ text
 Rahmen des Beispiels 
 Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. 
 
+https://imgur.com/CelO1Nh
 
+- Bob wurde beauftragt, einen Anmelde-API-Endpunkt `/apirule6/user` zu entwickeln, der einen Namen, einen Benutzernamen und ein Passwort als Eingabeparameter (POST) annimmt. Die Benutzertabelle hat eine `Guthaben-Spalte` mit einem Standardwert von `50`. Die Benutzer werden ihre Mitgliedschaft aufwerten, um einen höheren Guthabenwert zu erhalten.
+- Bob hat das Formular erfolgreich entworfen und die Massenzuweisungsfunktion in Laravel verwendet, um alle eingehenden Daten von der Client-Seite in der Datenbank zu speichern (wie oben gezeigt).
+- Wo liegt hier das Problem? Bob führt auf der Serverseite keine Filterung durch. Da er die Massenzuweisungsfunktion verwendet, fügt er auch Kreditwerte in die Datenbank ein (böswillige Akteure können diesen Wert aktualisieren).
+
+Die Lösung des Problems ist recht einfach. Bob muss die notwendige Filterung auf der Serverseite sicherstellen (`apirule6/user_s`) und dafür sorgen, dass der Standardwert des Guthabens als `50` eingefügt wird, auch wenn mehr als 50 von der Client-Seite empfangen wird (wie unten gezeigt).
 
 # Schwachstelle 7 -Security Misconfiguration
 
 ## Wie Kann es zu der Schwachstelle kommen? 
 
-text
+Eine falsche Sicherheitskonfiguration beschreibt eine Implementierung falscher und schlecht konfigurierter Sicherheitskontrollen, die die Sicherheit der gesamten API gefährden. Mehrere Faktoren können zu einer Sicherheitsfehlkonfiguration führen, darunter eine unsachgemäße/unvollständige Standardkonfiguration, öffentlich zugänglicher Cloud-Speicher, Cross-Origin Resource Sharing (CORS) und Fehlermeldungen, die mit sensiblen Daten angezeigt werden. Eindringlinge können diese Fehlkonfigurationen ausnutzen, um detaillierte Erkundungen durchzuführen und unbefugten Zugriff auf das System zu erhalten.
+
+Sicherheitsfehlkonfigurationen werden in der Regel von Schwachstellen-Scannern oder Auditing-Tools aufgedeckt und können so bereits auf der ersten Ebene eingedämmt werden. API-Dokumentation, eine Liste von Endpunkten, Fehlerprotokolle usw. dürfen nicht öffentlich zugänglich sein, um die Sicherheit vor Fehlkonfigurationen zu gewährleisten. In der Regel setzen Unternehmen Sicherheitskontrollen wie Web Application Firewalls ein, die nicht so konfiguriert sind, dass sie unerwünschte Anfragen und Angriffe blockieren.
 
 ## Impact 
 
-text
+Eine falsche Sicherheitskonfiguration kann Eindringlingen vollständige Kenntnisse über API-Komponenten verschaffen. Erstens können Eindringlinge so Sicherheitsmechanismen umgehen. Stack-Trace oder andere detaillierte Fehler können dem böswilligen Akteur Zugang zu vertraulichen Daten und wichtigen Systemdetails verschaffen, was dem Eindringling weiter dabei hilft, das System zu profilieren und sich Zugang zu verschaffen.
 
 ## Mitigation Measures
 
-text
+- Beschränken Sie den Zugriff auf die Verwaltungsschnittstellen für autorisierte Benutzer und deaktivieren Sie sie für andere Benutzer.
+- Deaktivieren Sie die Standardbenutzernamen und -kennwörter für öffentlich zugängliche Geräte (Router, Web Application Firewall usw.).
+- Deaktivieren Sie die Verzeichnisauflistung und setzen Sie für jede Datei und jeden Ordner die richtigen Berechtigungen.
+- Entfernen Sie unnötige Codeschnipsel, Fehlerprotokolle usw. und schalten Sie das Debugging aus, solange der Code in Produktion ist.
 
 
 ## Praktisches Beispiel
 
 Rahmen des Beispiels 
+
+https://imgur.com/MrRD2YV
 Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. **
 
+- Das Unternehmen MHT hat ernsthafte Probleme mit der Serververfügbarkeit. Daher beauftragte sie Bob mit der Entwicklung eines API-Endpunkts `/apirule7/ping_v (GET)`, der Informationen über den Zustand und den Status des Servers liefert.
+- Bob entwickelte den Endpunkt erfolgreich, vergaß jedoch, eine Fehlerbehandlung zu implementieren, um Informationsverluste zu vermeiden.
+- Was ist hier das Problem? Bei einem erfolglosen Aufruf sendet der Server als Antwort einen vollständigen Stack-Trace, der Funktionsnamen, Controller- und Routeninformationen, Dateipfad usw. enthält. Ein Angreifer kann diese Informationen nutzen, um ein Profil zu erstellen und gezielte Angriffe auf die Umgebung vorzubereiten.
 
+Die Lösung für dieses Problem ist recht einfach. Bob erstellt einen API-Endpunkt `/apirule7/ping_s`, der die Fehlerbehandlung vornimmt und nur die gewünschten Informationen an den Benutzer weitergibt (siehe unten).
 # Schwachstelle 8 -Injection
 
 ## Wie Kann es zu der Schwachstelle kommen? 
 
-text
+Injektionsangriffe gehören wahrscheinlich zu den ältesten API-/Web-basierten Angriffen und werden immer noch von Hackern auf reale Anwendungen angewandt. Injektionsfehler treten auf, wenn Benutzereingaben nicht gefiltert und direkt von einer API verarbeitet werden, so dass der Angreifer unbeabsichtigte API-Aktionen ohne Autorisierung durchführen kann. Eine Injektion kann von der Structure Query Language (SQL), Betriebssystembefehlen, der Extensible Markup Language (XML) usw. ausgehen. Heutzutage bieten Frameworks Funktionen zum Schutz vor diesen Angriffen durch automatische Datenbereinigung; Anwendungen, die in benutzerdefinierten Frameworks wie PHP Core erstellt wurden, sind jedoch immer noch anfällig für solche Angriffe.
 
 ## Impact 
 
-text
+Injektionsfehler können zur Offenlegung von Informationen, zu Datenverlust, DoS und zur vollständigen Übernahme von Konten führen. Erfolgreiche Injektionsangriffe können auch dazu führen, dass Eindringlinge auf sensible Daten zugreifen oder sogar neue Funktionen erstellen und Remotecode ausführen können.
 
 ## Mitigation Measures
 
-text
+- Stellen Sie sicher, dass Sie eine bekannte Bibliothek für die clientseitige Eingabevalidierung verwenden.
+- Wird kein Framework verwendet, müssen alle vom Client bereitgestellten Daten zunächst validiert und dann gefiltert und bereinigt werden.
+- Fügen Sie der Web Application Firewall (WAF) die erforderlichen Sicherheitsregeln hinzu. In den meisten Fällen können Injektionsfehler auf der Netzwerkebene entschärft werden.
+- Nutzen Sie integrierte Filter in Frameworks wie Laravel, Code Ignitor usw., um Daten zu validieren und zu filtern.
 
 
 ## Praktisches Beispiel
 
 Rahmen des Beispiels 
 Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. 
+https://imgur.com/aQCHkLT
+
+- Einige Benutzer des Unternehmens MHT meldeten, dass sich ihr Kontopasswort geändert hatte und sie sich nicht mehr bei ihrem ursprünglichen Konto anmelden konnten. Daraufhin stellte das Entwicklerteam fest, dass Bob einen anfälligen Login-API-Endpunkt `/apirule8/user/login_v` entwickelt hatte, der die Benutzereingaben nicht filtert.
+- Ein böswilliger Angreifer benötigt den Benutzernamen des Ziels, und für das Passwort kann er den Payload ‚ `'OR 1=1--'` verwenden und einen Autorisierungsschlüssel für ein beliebiges Konto erhalten (wie unten gezeigt).
+- Bob erkannte seinen Fehler sofort; er aktualisierte den API-Endpunkt auf `/apirule8/user/login_s` und verwendete parametrisierte Abfragen und integrierte Filter von Laravel, um Benutzereingaben zu bereinigen.
+
+Infolgedessen wurden alle bösartigen Payloads auf Benutzernamen- und Passwort-Parameter wirksam abgeschwächt (siehe unten)
+
 
 # Schwachstelle 9 -Improper Assets Management
 ## Wie Kann es zu der Schwachstelle kommen? 
 
-text
+Inappropriate Asset Management bezieht sich auf ein Szenario, in dem wir zwei Versionen einer API in unserem System zur Verfügung haben; nennen wir sie APIv1 und APIv2. Alles ist vollständig auf APIv2 umgestellt, aber die vorherige Version, APIv1, ist noch nicht gelöscht worden. In Anbetracht dessen könnte man leicht vermuten, dass die ältere Version der API, d. h. APIv1, nicht über die aktualisierten oder neuesten Sicherheitsfunktionen verfügt. Zahlreiche andere veraltete Funktionen von APIv1 machen es möglich, anfällige Szenarien zu finden, die zu Datenlecks und zur Übernahme von Servern über eine gemeinsam genutzte Datenbank unter API-Versionen führen können.
+
+Im Wesentlichen geht es darum, dass API-Endpunkte nicht richtig verfolgt werden. Mögliche Gründe dafür sind eine unvollständige API-Dokumentation oder die mangelnde Einhaltung des Softwareentwicklungszyklus. Ein ordnungsgemäß gepflegtes, aktuelles API-Inventar und eine ordnungsgemäße Dokumentation sind für ein Unternehmen wichtiger als hardwarebasierte Sicherheitskontrollen.
 
 ## Impact 
 
-text
+Ältere oder ungepatchte API-Versionen können es Eindringlingen ermöglichen, unbefugten Zugang zu vertraulichen Daten oder sogar die vollständige Kontrolle über das System zu erlangen.
 
 ## Mitigation Measures
 
-text
+- Der Zugriff auf zuvor entwickelte sensible und veraltete API-Aufrufe muss auf Netzwerkebene blockiert werden.
+- APIs, die für F&E, QA, Produktion usw. entwickelt wurden, müssen getrennt und auf separaten Servern gehostet werden.
+- Sicherstellung der Dokumentation aller API-Aspekte, einschließlich Authentifizierung, Umleitungen, Fehler, CORS-Richtlinie und Ratenbegrenzung
+- Führen Sie offene Standards ein, um die Dokumentation automatisch zu erstellen.
 
 
 ## Praktisches Beispiel
-
+https://imgur.com/gRmz1Kw
 Rahmen des Beispiels 
 Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. 
 
+- Während der API-Entwicklung hat das Unternehmen MHT verschiedene API-Versionen wie v1 und v2 entwickelt. Das Unternehmen sorgte dafür, dass die neuesten Versionen und API-Aufrufe verwendet wurden, vergaß aber, die alte Version vom Server zu entfernen.
+- Infolgedessen wurde festgestellt, dass alte API-Aufrufe wie `apirule9/v1/user/login` mehr Informationen wie Guthaben, Adresse usw. über den Benutzer zurückgeben (siehe unten)
+- Bob being the developer of the endpoint, realised that he must immediately deactivate old and unused assets so that users can only access limited and desired information from the new endpoint `/apirul9/v2/user/login` (as shown below)
 
 # Schwachstelle 10 -Insufficient Logging & Monitoring
 
 ## Wie Kann es zu der Schwachstelle kommen? 
 
-text
+Unzureichende Protokollierung und Überwachung spiegeln ein Szenario wider, in dem ein Angreifer bösartige Aktivitäten auf Ihrem Server durchführt; wenn Sie jedoch versuchen, den Hacker aufzuspüren, gibt es aufgrund fehlender Protokollierungs- und Überwachungsmechanismen nicht genügend Beweise. Viele Unternehmen konzentrieren sich nur auf die Infrastrukturprotokollierung, wie z. B. Netzwerkereignisse oder Serverprotokollierung, aber nicht auf die API-Protokollierung und -Überwachung. Informationen wie die IP-Adresse des Besuchers, aufgerufene Endpunkte, Eingabedaten usw. zusammen mit einem Zeitstempel ermöglichen die Identifizierung von Angriffsmustern. Ohne Protokollierungsmechanismen wäre es schwierig, den Angreifer und seine Details zu identifizieren. Heutzutage können die neuesten Web-Frameworks automatisch Anfragen auf verschiedenen Ebenen wie Fehler, Debug, Info usw. protokollieren. Diese Fehler können in einer Datenbank oder Datei protokolliert oder sogar an eine SIEM-Lösung zur detaillierten Analyse weitergeleitet werden.
 
 ## Impact 
 
-text
+Unfähigkeit, den Angreifer oder Hacker hinter dem Angriff zu identifizieren.
 
 ## Mitigation Measures
 
-text
+- Stellen Sie sicher, dass das SIEM-System (Security Information and Event Management) für die Protokollverwaltung verwendet wird.
+- Verfolgen Sie alle verweigerten Zugriffe, fehlgeschlagenen Authentifizierungsversuche und Eingabevalidierungsfehler in einem Format, das von SIEM importiert wird, und mit genügend Details, um den Eindringling zu identifizieren.
+- Behandeln Sie Protokolle als sensible Daten und stellen Sie deren Integrität im Ruhezustand und bei der Übertragung sicher. Implementieren Sie außerdem benutzerdefinierte Warnmeldungen, um auch verdächtige Aktivitäten zu erkennen.
 
 
 ## Praktisches Beispiel
 
 Rahmen des Beispiels 
 Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. 
+
+- In der Vergangenheit war das Unternehmen MHT mehrfach von Angriffen betroffen, und der genaue Schuldige hinter diesen Angriffen konnte nicht ermittelt werden. Daher wurde Bob damit beauftragt, einen API-Endpunkt `/apirule10/logging` (GET) zu erstellen, der die Metadaten der Benutzer (IP-Adresse, Browserversion usw.) protokolliert und in der Datenbank speichert (siehe unten).
+- Später wurde auch beschlossen, dass diese Daten zur Korrelation und Analyse an eine SIEM-Lösung weitergeleitet werden.
