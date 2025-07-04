@@ -8,7 +8,7 @@ Then I Found the room "# Attacking ICS Plant #1" where they Used "pymodbus" i we
 
 After that i Went and wrote a Python Script with help of Chat GPT to Connect to the Modbus Device and Pull Registers 0-200. 
 
-This is the Script Since Im German the Dialoug is in German aswell hahahah: 
+This is the Script Since Im German the Dialoug is in German aswell: 
 
 ```
 from pymodbus.client.sync import ModbusTcpClient
@@ -55,7 +55,7 @@ scan_holding_registers_for_ascii(ip="10.10.51.226", port=502, start=0, end=200, 
 
 ```
 
-After Running it it literally only was a look into the output witch was 
+After Running it it literally only was a look into the output that was 
 
 ```
 [000] -> '..&.!.;H..X*y=..=._...<`1..4(..T.Q..L/."'
