@@ -176,7 +176,5 @@ Weitere Informationen: [https://owasp.org/Top10](https://owasp.org/Top10)
 
 ---
 
-**Autor:** IT Security Cheat Sheet – erstellt mit Hilfe von ChatGPT
 
-**Lizenz:** CC BY-SA 4.0
 
