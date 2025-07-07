@@ -21,3 +21,9 @@ IDOR oder Insecure Direct Object Reference bezeichnet eine Schwachstelle in der 
 
 ### Beispiel zur genaueren Erläuterung
 https://imgur.com/ov47sgS
+
+# 2. Cryptographic Failures
+
+## Definition
+
+Ein kryptografisches Versagen bezieht sich auf jede Schwachstelle, die durch den Missbrauch (oder die mangelnde Verwendung) kryptografischer Algorithmen zum Schutz sensibler Informationen entsteht. Webanwendungen erfordern Kryptographie, um die Vertraulichkeit für ihre Benutzer auf vielen Ebenen zu gewährleisten.
