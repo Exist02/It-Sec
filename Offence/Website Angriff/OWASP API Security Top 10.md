@@ -177,23 +177,27 @@ Das Problem kann programmatisch gelöst werden, indem korrekte Autorisierungsreg
 
 ## Wie Kann es zu der Schwachstelle kommen? 
 
-text
+Die Massenzuweisung spiegelt ein Szenario wider, bei dem clientseitige Daten automatisch an serverseitige Objekte oder Klassenvariablen gebunden werden. Hacker nutzen diese Funktion jedoch aus, indem sie zunächst die Geschäftslogik der Anwendung verstehen und speziell gestaltete Daten an den Server senden, sich administrativen Zugriff verschaffen oder manipulierte Daten einfügen. Diese Funktion wird in den neuesten Frameworks wie Laravel, Code Ignitor usw. häufig ausgenutzt.
+
+Nehmen wir das Dashboard eines Benutzerprofils, in dem der Benutzer sein Profil aktualisieren kann, z. B. die zugehörige E-Mail, den Namen, die Adresse usw. Der Benutzername des Benutzers ist ein schreibgeschütztes Attribut und kann nicht geändert werden; ein böswilliger Akteur kann jedoch den Benutzernamen bearbeiten und das Formular absenden. Wenn die erforderliche Filterung auf der Serverseite (Modell) nicht aktiviert ist, werden die Daten einfach in die Datenbank eingefügt/aktualisiert.
 
 ## Impact 
 
-text
+Der Angriff kann zu Datenmanipulationen und zur Ausweitung der Rechte eines normalen Benutzers auf einen Administrator führen.
 
 ## Mitigation Measures
 
-text
-
+- Bevor man ein Framework verwendet, muss man untersuchen, wie die Einfügungen und Aktualisierungen im Backend durchgeführt werden. Im Laravel-Framework entschärfen fillable und guarded arrays die oben genannten Szenarien.
+- Vermeiden Sie die Verwendung von Funktionen, die eine Eingabe von einem Client automatisch an Codevariablen binden.
+- Lassen Sie nur die Eigenschaften zu, die von der Client-Seite aktualisiert werden müssen.
 
 ## Praktisches Beispiel
 
 Rahmen des Beispiels 
 Provided ist eine Testumgebung mit einem Online Tool welches zum Debuggen von API Endpoints genutzt wird. 
 
-
+- Bob wurde beauftragt, einen Anmelde-API-Endpunkt `/apirule6/user` zu entwickeln, der einen Namen, einen Benutzernamen und ein Passwort als Eingabeparameter (POST) annimmt. Die Benutzertabelle hat eine `Guthaben-Spalte` mit einem Standardwert von `50`. Die Benutzer werden ihre Mitgliedschaft aufwerten, um einen höheren Guthabenwert zu erhalten.
+- Bob hat das Formular erfolgreich entworfen und die Massenzuweisungsfunktion in Laravel verwendet, um alle eingehenden Daten von der Client-Seite in der Datenbank zu speichern (wie unten gezeigt).
 
 # Schwachstelle 7 -Security Misconfiguration
 
