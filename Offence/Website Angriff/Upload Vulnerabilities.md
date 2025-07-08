@@ -161,8 +161,57 @@ Jetzt können wir den Request durchlassen und erhalten Antwort vom Server. In di
 
 Im Anschluss lässt sich ohne Probleme ein Script wie die Reverse Shell aus dem RCE Teil hochladen.
 
+Wenn wir nun zu http://demo.uploadvulns.thm/uploads/shell.php navigieren, nachdem wir einen netcat-Listener eingerichtet haben, erhalten wir eine Verbindung von der Shell!
 #### WICHTIG
 Es ist erwähnenswert, dass Burpsuite standardmäßig keine externen Javascript-Dateien abfängt, die von der Webseite geladen werden. Wenn Sie ein Skript bearbeiten müssen, das sich nicht auf der geladenen Hauptseite befindet, müssen Sie auf die Registerkarte „Optionen“ am oberen Rand des Burpsuite-Fensters gehen und dann unter dem Abschnitt „Abfangen von Client-Anfragen“ die Bedingung der ersten Zeile bearbeiten, um `^js$|` zu Entfernen
 
 ### Praktisches Beispiel 2- Anpassen des MIME Typs
+
+Wieder haben wir ein Seite mit Upload vor uns. 
+Bei der Erkundung der Seite und des Source Codes sehen wir das im Sourcecode ein Javascript ist welches anhand des MIME Typs die Dateien Kontrolliert. In dem Beispiel schaut es das nur `image/jpeg` hochgeladen wird. siehe unterhalb
+https://imgur.com/8G9RWo3
+
+Unser nächster Schritt ist der Versuch, eine Datei hochzuladen - wie erwartet akzeptiert die Funktion ein JPEG, wenn wir es auswählen. Bei allen anderen Dateien wird der Upload abgelehnt.
+
+Jetzt kommt der teil der sich ändert. 
+
+Zuerst gehen wir her und ändern die Payload aus `shell.php` zu `shell.jpg`. Dann aktivieren wir Burp und laden die wählen unsere modifizierte "jpg" aus und gehen auf Upload. Hier greift sich Burp dann den Request und diesen müssen wir anpassen indem wir den filename wieder auf shell.php und den Content Type auf text/x-php setzen, siehe unterhalb
+
+https://imgur.com/X5dbMjw
+
+Wenn wir nun zu http://demo.uploadvulns.thm/uploads/shell.php navigieren, nachdem wir einen netcat-Listener eingerichtet haben, erhalten wir eine Verbindung von der Shell!
+
+--- 
+
+# Bypassing Server-Side Filtering: File Extentions
+
+Client-seitige Filter sind leicht zu umgehen - man kann den Code für sie sehen, auch wenn er verschleiert wurde und verarbeitet werden muss, bevor man ihn lesen kann; aber was passiert, wenn man den Code nicht sehen oder manipulieren kann? Nun, das ist ein serverseitiger Filter. Kurz gesagt, wir müssen viele Tests durchführen, um uns ein Bild davon zu machen, was der Filter zulässt und was nicht, und dann nach und nach eine Payload zusammenstellen, die mit den Einschränkungen konform ist.
+
+### Beispiel 1
+Im ersten Teil dieser Aufgabe werden wir uns eine Website ansehen, die eine Blacklist für Dateierweiterungen als serverseitigen Filter verwendet. Es gibt eine Vielzahl von Möglichkeiten, wie dies kodiert werden kann, und die Umgehung, die wir verwenden, hängt davon ab. In der realen Welt würden wir den Code dafür nicht sehen können, aber für dieses Beispiel wird er hier eingefügt:
+
+```
+<?php  
+    //Get the extension  
+    $extension = pathinfo($_FILES["fileToUpload"]["name"])["extension"];  
+    //Check the extension against the blacklist -- .php and .phtml  
+    switch($extension){  
+        case "php":  
+        case "phtml":  
+        case NULL:  
+            $uploadFail = True;  
+            break;  
+        default:  
+            $uploadFail = False;  
+    }  
+?>
+```
+
+In diesem Fall sucht der Code nach dem letzten Punkt (.) im Dateinamen und verwendet diesen, um die Erweiterung zu bestätigen, was wir hier also zu umgehen versuchen. Der Code könnte auch nach dem ersten Punkt im Dateinamen suchen oder den Dateinamen an jedem Punkt aufteilen und prüfen, ob irgendwelche Erweiterungen auf der schwarzen Liste auftauchen. Letzteres werden wir später behandeln, aber bis dahin wollen wir uns auf den Code konzentrieren, den wir hier haben.
+
+Wir können sehen, dass der Code die Erweiterungen `.php` und `.phtml` herausfiltert. Wenn wir also ein PHP-Skript hochladen wollen, müssen wir eine andere Erweiterung finden. Auf der Wikipedia-Seite für PHP finden wir einige gängige Erweiterungen, die wir ausprobieren können; es gibt jedoch noch eine Reihe anderer, seltener verwendeter Erweiterungen, die von Webservern möglicherweise trotzdem erkannt werden. Dazu gehören: `.php3, .php4, .php5, .php7, .phps, .php-s, .pht und .phar.` Viele von ihnen umgehen den Filter (der nur .php und .phtml blockiert), aber es scheint, dass der Server so konfiguriert ist, dass er sie nicht als PHP-Dateien erkennt.
+
+Sobald wir ein Format haben das sich uploaden und ausführen lässt bekommen wir unsere Reverse Shell.
+
+### Beispiel 2
 
