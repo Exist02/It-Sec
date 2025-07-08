@@ -187,6 +187,8 @@ Wenn wir nun zu http://demo.uploadvulns.thm/uploads/shell.php navigieren, nachde
 
 Client-seitige Filter sind leicht zu umgehen - man kann den Code für sie sehen, auch wenn er verschleiert wurde und verarbeitet werden muss, bevor man ihn lesen kann; aber was passiert, wenn man den Code nicht sehen oder manipulieren kann? Nun, das ist ein serverseitiger Filter. Kurz gesagt, wir müssen viele Tests durchführen, um uns ein Bild davon zu machen, was der Filter zulässt und was nicht, und dann nach und nach eine Payload zusammenstellen, die mit den Einschränkungen konform ist.
 
+Dies ist keineswegs eine vollständige Liste von Schwachstellen beim Hochladen im Zusammenhang mit Dateierweiterungen. Wie bei allem, was mit Hacking zu tun hat, versuchen wir, Schwachstellen in Code auszunutzen, den andere geschrieben haben; dieser Code kann sehr wohl einzigartig für die vorliegende Aufgabe geschrieben sein. Das ist der wirklich wichtige Punkt, den man aus dieser Aufgabe mitnehmen sollte: Es gibt eine Million verschiedene Möglichkeiten, dieselbe Funktion zu implementieren, wenn es um Programmierung geht - Ihre Ausnutzung muss auf den jeweiligen Filter zugeschnitten sein. Der Schlüssel zur Umgehung jeder Art von serverseitigem Filter liegt darin, aufzuzählen, was erlaubt ist und was blockiert wird, und dann zu versuchen, einen Payload zu erstellen, der die Kriterien des Filters erfüllen kann.
+
 ### Beispiel 1
 Im ersten Teil dieser Aufgabe werden wir uns eine Website ansehen, die eine Blacklist für Dateierweiterungen als serverseitigen Filter verwendet. Es gibt eine Vielzahl von Möglichkeiten, wie dies kodiert werden kann, und die Umgehung, die wir verwenden, hängt davon ab. In der realen Welt würden wir den Code dafür nicht sehen können, aber für dieses Beispiel wird er hier eingefügt:
 
@@ -215,3 +217,43 @@ Sobald wir ein Format haben das sich uploaden und ausführen lässt bekommen wir
 
 ### Beispiel 2
 
+Neues Beispiel neuer Filter, und dieses mal haben wir nicht den Code des Filters vorliegen. 
+
+Wie die letzten male enumerieren wir erstmal mit Gobuster und finden das /privacy/ Verzeichnis mit dem upload einer .jpg können wir dann auch Verifizieren das dies das Upload Verzeichnis ist. Von hier aus führen wir weitere Enumeration durch, indem wir die oben genannten Techniken ausprobieren und ganz allgemein versuchen, eine Vorstellung davon zu bekommen, was der Filter akzeptiert oder ablehnt.
+
+In diesem Fall stellen wir fest, dass es keine Shell-Erweiterungen gibt, die sowohl ausgeführt als auch nicht gefiltert werden. Im vorherigen Beispiel haben wir gesehen, dass der Code die PHP-Funktion pathinfo() verwendet, um die letzten Zeichen nach dem . zu erhalten.
+Lassen Sie uns versuchen, eine Datei namens shell.jpg.php hochzuladen. Wir wissen bereits, dass JPEG-Dateien akzeptiert werden. Was wäre also, wenn der Filter nur prüft, ob die Dateierweiterung .jpg irgendwo in der Eingabe vorkommt?
+
+Wenn wir das Versuchen bekommen wir eine Erfolgsnachricht. Wenn wir jetzt in den Ordner für die Uplads Navigieren und die Datei starten erhalten wir eine Reverse shell
+
+---
+# Bypassing Server-Side Filtering: Magic Numbers
+
+Wie bereits erwähnt, werden magic numbers zur genaueren Kennzeichnung von Dateien verwendet. Die magic numbers einer Datei ist eine Zeichenfolge aus Hexadezimalziffern und steht immer an erster Stelle in einer Datei. Mit diesem Wissen ist es möglich, magische Zahlen zur Validierung von Datei-Uploads zu verwenden, indem einfach die ersten paar Bytes gelesen und mit einer Whitelist oder einer Blacklist verglichen werden. Beachten Sie, dass diese Technik bei einem PHP-basierten Webserver sehr effektiv sein kann, bei anderen Webservertypen jedoch manchmal versagt.
+
+### Beispiel 
+Wie erwartet, erhalten wir eine Fehlermeldung, wenn wir unsere Standard shell.php Datei hochladen; wenn wir jedoch ein JPEG hochladen, ist die Website damit einverstanden. Bis jetzt läuft alles wie erwartet.
+
+Aus dem vorherigen Upload-Versuch wissen wir, dass JPEG-Dateien akzeptiert werden, also fügen wir die magische JPEG-Nummer am Anfang unserer shell.php-Datei hinzu. Ein kurzer Blick auf die Liste der Dateisignaturen auf Wikipedia zeigt uns, dass es mehrere mögliche magische Zahlen für JPEG-Dateien gibt. Es sollte keine Rolle spielen, welche wir hier verwenden, also nehmen wir einfach eine (FF D8 FF DB). Wir könnten die ASCII-Darstellung dieser Ziffern (ÿØÿÛ) direkt oben in die Datei einfügen, aber es ist oft einfacher, direkt mit der Hexadezimaldarstellung zu arbeiten, daher wollen wir diese Methode anwenden.
+
+Bevor wir beginnen, sollten wir den Linux-Befehl file verwenden, um den Dateityp unserer Shell zu überprüfen:
+```
+file shell.php
+```
+Wie erwartet, sagt uns der Befehl, dass der Dateityp PHP ist. Behalten wir das im Hinterkopf, während wir mit der Erklärung fortfahren.
+
+  
+Wir können sehen, dass die Magic number, die wir gewählt haben, vier Bytes lang ist. Deshalb öffnen wir das Reverse-Shell-Skript und fügen vier zufällige Zeichen in die erste Zeile ein. Diese Zeichen spielen keine Rolle, also verwenden wir für dieses Beispiel einfach vier „A“. Jetzt speichern wir die Datei genauso ab. Um sie dann im Terminal via hexeditor oder einem anderen Tool welches es uns erlaubt hex zu sehen und anzupassen. Dies sieht dann wie unterhalb aus. Hier können wir dann auch hergehen und die "A"'s zu dem passenden Magic Numbers umändern wie hier für Jepg zu `FF D8 FF DB`
+https://imgur.com/NlJZePu
+
+Jetzt speichern wir die Datei ab, laden sie hoch und sind erfolgreich um den Filter drum herum gekommen und haben eine Shell
+
+## Wichtig
+Sollte es mal nicht möglich sein auf den Upload ordner zuzugreifen kann man auch versuchen die Datei Direkt zu Callen. 
+
+Beispiel der uploadordner der seite "http://magic.uploadvulns.thm" ist /graphics und die hochgeladene datei ist die "shell.php" dann kann diese via direkten call auf 
+
+```
+http://magic.uploadvulns.thm/graphics/shell.php
+```
+getriggert werden
