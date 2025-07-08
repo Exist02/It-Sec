@@ -119,3 +119,50 @@ Magic Numbers sind die genauere Art, den Inhalt einer Datei zu bestimmen; allerd
 
 Beispielbild: https://imgur.com/18vlRlK
 Im Gegensatz zu Windows verwenden Unix-Systeme Magic Numbers zur Identifizierung von Dateien; bei Datei-Uploads ist es jedoch möglich, die magische Zahl der hochgeladenen Datei zu überprüfen, um sicherzustellen, dass sie sicher akzeptiert werden kann. Dies ist keineswegs eine garantierte Lösung, aber effektiver als die Überprüfung der Dateierweiterung einer Datei.
+
+## File Length Filtering
+
+Dateilängenfilter werden verwendet, um zu verhindern, dass große Dateien über ein Upload-Formular auf den Server hochgeladen werden (da dies den Server möglicherweise an resourcen aushungern kann). In den meisten Fällen wird dies keine Probleme verursachen, wenn wir Shells hochladen; es ist jedoch zu bedenken, dass, wenn ein Upload-Formular nur das Hochladen einer sehr kleinen Datei erwartet, ein Längenfilter vorhanden sein kann, um sicherzustellen, dass die Dateilängenanforderung eingehalten wird. Unsere vollwertige PHP-Reverse-Shell aus der vorherigen Aufgabe ist beispielsweise 5,4 KB groß - relativ klein, aber wenn das Formular maximal 2 KB erwartet, müssen wir eine andere Shell zum Hochladen finden.
+
+## File Name Filtering
+
+Wie bereits erwähnt, sollten Dateien, die auf einen Server hochgeladen werden, eindeutig sein. Normalerweise würde dies bedeuten, dass dem Dateinamen ein Zufallswert hinzugefügt wird. Eine alternative Strategie wäre jedoch, zu prüfen, ob eine Datei mit demselben Namen bereits auf dem Server existiert, und dem Benutzer in diesem Fall eine Fehlermeldung zu geben. Außerdem sollten Dateinamen beim Hochladen bereinigt werden, um sicherzustellen, dass sie keine „schlechten Zeichen“ enthalten, die beim Hochladen Probleme im Dateisystem verursachen könnten (z. B. Nullbytes oder Schrägstriche unter Linux sowie Steuerzeichen wie ; und möglicherweise Unicode-Zeichen). Für uns bedeutet dies, dass unsere hochgeladenen Dateien auf einem gut verwalteten System wahrscheinlich nicht denselben Namen haben, den wir ihnen vor dem Hochladen gegeben haben. Seien Sie sich also bewusst, dass Sie möglicherweise nach Ihrer Shell suchen müssen, falls es Ihnen gelingt, die Inhaltsfilterung zu umgehen.
+
+## File Content Filtering 
+
+Kompliziertere Filtersysteme können den gesamten Inhalt einer hochgeladenen Datei scannen, um sicherzustellen, dass ihre Erweiterung, ihr MIME-Typ und ihre Magic Number nicht gefälscht sind. Dies ist ein wesentlich komplexerer Prozess als bei den meisten einfachen Filtersystemen.
+
+---
+
+# Bypassing Client Side Filters
+
+Wie bereits erwähnt, lässt sich die clientseitige Filterung in der Regel sehr leicht umgehen, da sie vollständig auf einem von Ihnen kontrollierten Rechner stattfindet. Wenn Sie Zugriff auf den Code haben, ist es sehr einfach, ihn zu ändern.
+
+
+Es gibt vier einfache Möglichkeiten, den durchschnittlichen clientseitigen Datei-Upload-Filter zu umgehen:
+1. Deaktivieren Sie Javascript in Ihrem Browser - dies funktioniert, sofern die Website kein Javascript benötigt, um grundlegende Funktionen bereitzustellen. Wenn die vollständige Deaktivierung von Javascript verhindert, dass die Website überhaupt funktioniert, ist eine der anderen Methoden wünschenswerter; ansonsten kann dies ein effektiver Weg sein, den clientseitigen Filter vollständig zu umgehen.
+2. Abfangen und Ändern der eingehenden Seite. Mit Burpsuite können wir die eingehende Webseite abfangen und den Javascript-Filter entfernen, bevor er eine Chance hat, zu laufen. Der Prozess dafür wird weiter unten beschrieben
+3. Abfangen und Ändern des Dateiuploads. Während die vorherige Methode funktioniert, bevor die Webseite geladen wird, erlaubt diese Methode, dass die Webseite wie gewohnt geladen wird, fängt aber den Datei-Upload ab, nachdem er bereits erfolgt ist (und vom Filter akzeptiert wurde). Auch diese Methode wird im weiteren Verlauf der Aufgabe behandelt.
+4. Senden Sie die Datei direkt an den Upload-Punkt. Warum die Webseite mit dem Filter verwenden, wenn Sie die Datei direkt mit einem Tool wie curl senden können? Das direkte Senden der Daten an die Seite, die den Code für die Verarbeitung des Datei-Uploads enthält, ist eine weitere effektive Methode, um einen clientseitigen Filter vollständig zu umgehen. Wir werden diese Methode in diesem Tutorium nicht wirklich ausführlich behandeln, aber die Syntax für einen solchen Befehl würde etwa so aussehen: `curl -X POST -F „submit:<Wert>“ -F „<Datei-Parameter>:@<Pfad-zur-Datei>“ <Seite>`. Um diese Methode zu verwenden, müssten Sie zunächst einen erfolgreichen Upload abfangen (mit Burpsuite oder der Browserkonsole), um die beim Upload verwendeten Parameter zu sehen, die dann in den obigen Befehl eingefügt werden können.
+
+### Praktisches Beispiel 1 -Entfernen des JS codes
+
+Wieder haben wir ein Seite mit Upload vor uns. 
+Bei der Erkundung der Seite und des Source Codes sehen wir das im Sourcecode ein Javascript ist welches anhand des MIME Typs die Dateien Kontrolliert. In dem Beispiel schaut es das nur `image/jpeg` hochgeladen wird. siehe unterhalb
+https://imgur.com/8G9RWo3
+
+Unser nächster Schritt ist der Versuch, eine Datei hochzuladen - wie erwartet akzeptiert die Funktion ein JPEG, wenn wir es auswählen. Bei allen anderen Dateien wird der Upload abgelehnt.
+
+Nachdem wir dies festgestellt haben, starten wir Burpsuite und laden die Seite neu. Hier sehen wir dann unsere anfrage an den Server und wählen via Rechtsclick auf die Anfrage "Do Intercept" > "Response to this Request" Bild unterhalb
+
+https://imgur.com/czHlAAk
+
+Jetzt können wir den Request durchlassen und erhalten Antwort vom Server. In dieser Antwort können wir das Javascript/die Javascript Funktion löschen die das Filtern übernimmt.
+
+Im Anschluss lässt sich ohne Probleme ein Script wie die Reverse Shell aus dem RCE Teil hochladen.
+
+#### WICHTIG
+Es ist erwähnenswert, dass Burpsuite standardmäßig keine externen Javascript-Dateien abfängt, die von der Webseite geladen werden. Wenn Sie ein Skript bearbeiten müssen, das sich nicht auf der geladenen Hauptseite befindet, müssen Sie auf die Registerkarte „Optionen“ am oberen Rand des Burpsuite-Fensters gehen und dann unter dem Abschnitt „Abfangen von Client-Anfragen“ die Bedingung der ersten Zeile bearbeiten, um `^js$|` zu Entfernen
+
+### Praktisches Beispiel 2- Anpassen des MIME Typs
+
