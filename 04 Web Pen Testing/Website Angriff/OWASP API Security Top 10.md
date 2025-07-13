@@ -177,7 +177,6 @@ Das Problem kann programmatisch gelöst werden, indem korrekte Autorisierungsreg
 
 ## Wie Kann es zu der Schwachstelle kommen? 
 
-<<<<<<< HEAD
 Die Massenzuweisung spiegelt ein Szenario wider, bei dem clientseitige Daten automatisch an serverseitige Objekte oder Klassenvariablen gebunden werden. Hacker nutzen diese Funktion jedoch aus, indem sie zunächst die Geschäftslogik der Anwendung verstehen und speziell gestaltete Daten an den Server senden, sich administrativen Zugriff verschaffen oder manipulierte Daten einfügen. Diese Funktion wird in den neuesten Frameworks wie Laravel, Code Ignitor usw. häufig ausgenutzt.
 
 Nehmen wir das Dashboard eines Benutzerprofils, in dem der Benutzer sein Profil aktualisieren kann, z. B. die zugehörige E-Mail, den Namen, die Adresse usw. Der Benutzername des Benutzers ist ein schreibgeschütztes Attribut und kann nicht geändert werden; ein böswilliger Akteur kann jedoch den Benutzernamen bearbeiten und das Formular absenden. Wenn die erforderliche Filterung auf der Serverseite (Modell) nicht aktiviert ist, werden die Daten einfach in die Datenbank eingefügt/aktualisiert.
@@ -200,7 +199,6 @@ Der Angriff kann zu Datenmanipulationen und zur Ausweitung der Rechte eines norm
 <<<<<<< HEAD
 =======
 
->>>>>>> origin/main
 
 ## Praktisches Beispiel
 
