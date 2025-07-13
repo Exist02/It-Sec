@@ -139,7 +139,7 @@ Automatische Wiedereinsetzung der Tabelle
 
 Flags & Endergebnis
 - **Flag 1** (Admin-Panel): `THM{INJECTICS_ADMIN_PANEL_007}`
-- **Flag 2** (Flag-Verzeichnis): `THM{5735172b6c147f4dd649872f73e0fdea}`
+- **Flag 2** (Flag-Verzeichnis): 
  Fazit
 1. `/mail.log` → echte Admin-Creds  
 2. SQLi → Login als dev  
