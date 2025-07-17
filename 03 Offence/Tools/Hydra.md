@@ -27,6 +27,23 @@ Hydra will use root as the username for ssh
 It will try the passwords in the passwords.txt file		
 There will be four threads running in parallel as indicated by -t 4		
 
+# HTTP Auth
+
+Kann man bei einer HTTP anmelde Maske nehmen siehe 
+
+https://imgur.com/MDkOwjy
+
+```
+hydra -l bob -P /usr/share/wordlists/rockyou.txt -t 1 -f 10.10.96.224 http-get /protected
+```
+
+-l für den Nutzername (in dem Beispiel ist er als Bob gegeben)
+-P Soll hier gebruteforced werden deshalb link auf wordlist
+-t 1 Hier soll ein Threat genutzt werden (kann man auf bis zu 64 Scalen)
+-f Bricht das Forcen ab sobald ein login gefunden wurde
+10.10.96.224  Ziel IP Adresse
+http-get ist hier die Methodik 
+/protected Der Pfad, der durch HTTP Basic Auth geschützt ist
 
 # Post Web Form		
 We can use Hydra to brute force web forms too. You must know which type of request it is making; GET or POST methods are commonly used. You can use your browser’s network tab (in developer tools) to see the request types or view the source code.		
@@ -45,9 +62,12 @@ http-post-form	the type of the form is POST
 -V	verbose output for every attempt	
 
 Below is a more concrete example Hydra command to brute force a POST login form:		
+
 ```
 hydra -l <username> -P <wordlist> 10.10.202.56 http-post-form "/:username=^USER^&password=^PASS^:F=incorrect" -V		
 ```
+
+
 
 The login page is only /, i.e., the main IP address.		
 The username is the form field where the username is entered		
@@ -56,3 +76,7 @@ The password is the form field where the password is entered
 The provided passwords will be replacing ^PASS^		
 Finally, F=incorrect is a string that appears in the server reply when the login fails		
 You should now have enough information to put this to practice and brute force your credentials to the deployed machine!		
+
+
+
+
