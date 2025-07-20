@@ -74,6 +74,11 @@ Einige andere Dateien, nach denen Sie vielleicht suchen möchten, sind `.txt`-Da
 1. html
 2. js
 3. css
+Das sieht dann so aus:
+```
+gobuster dir -u http://10.10.252.123/myfolder -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x.html,.css,.js
+```
+
 
 ## "dns" Mode
 
@@ -127,3 +132,47 @@ Nachfolgend finden Sie eine nützliche Liste von Wortlisten, die unter Kali Linu
 Nicht-Standard-Listen
 
 Zusätzlich zu den oben genannten hat Daniel Miessler ein erstaunliches GitHub-Repositorium namens SecLists erstellt. Es stellt viele verschiedene Listen zusammen, die für viele verschiedene Dinge verwendet werden. Das Beste daran ist, dass es in apt enthalten ist! Du kannst `sudo apt install seclists` ausführen und erhältst das gesamte Repo! Wir werden nicht in andere Listen eintauchen, da es viele davon gibt. Allerdings bezweifle ich, dass du zwischen dem, was standardmäßig auf Kali installiert ist, und dem SecLists-Repository etwas anderes brauchst.
+
+
+# WPScan
+
+## Einführung in WPScan
+
+Das WPScan-Framework ist in der Lage, einige Kategorien von Sicherheitslücken in WordPress-Websites aufzuzählen und zu untersuchen - einschließlich, aber nicht beschränkt auf:
+
+- Offenlegung sensibler Informationen (Plugin- und Theme-Installationsversionen für offengelegte Schwachstellen oder CVEs)
+- Path Discovery (Suche nach falsch konfigurierten Dateiberechtigungen, z. B. wp-config.php)
+- Weak Password Policies (Password Bruteforcing)
+- Presence of Default Installation (Suche nach Standarddateien)
+- Testing Web Application Firewalls (Common WAF plugins)
+
+**Istallation**
+
+Zum Glück für uns ist WPScan auf den neuesten Versionen von Penetrationstestsystemen wie Kali Linux und Parrot vorinstalliert. Wenn man beispielsweise eine ältere Version von Kali Linux (wie 2019) verwendet, befindet sich WPScan im apt-Repository, kann also durch ein einfaches `sudo apt update && sudo apt install wpscan` installiert werden
+
+### WICHTIG
+WPScan verwendet Informationen in einer lokalen Datenbank als primären Bezugspunkt für die Enumeration von Themen und Plugins. Eine Technik, die WPScan bei der Enumeration anwendet, ist die Suche nach gemeinsamen Designs und Plugins, auf die wir später noch näher eingehen werden. Bevor man mit WPScan arbeitet, wird dringend empfohlen, diese Datenbank zu aktualisieren, bevor man irgendwelche Scans durchführt.
+
+Zum Glück ist dies ein einfacher Prozess. Indem man einfach `wpscan --update` durchführt
+
+## Enumeration für installierte Designs
+
+WPScan hat einige Methoden, um das aktive Design einer laufenden WordPress-Installation zu bestimmen. Im Grunde genommen handelt es sich um eine Technik, die wir selbst manuell durchführen können. Wir können uns einfach die Assets ansehen, die unser Webbrowser lädt, und dann nach dem Ort dieser Assets auf dem Webserver suchen. Über die Registerkarte „Netzwerk“ in den Entwicklertools Ihres Webbrowsers kann ermittelt werden, welche Dateien geladen werden, wenn man eine Website besucht.
+
+Beispiel:
+https://imgur.com/yW0pcNJ
+
+Wenn man dies mit WPScan machen möchte lautet die Syntax wie folgt:
+
+```
+wpscan --url http://cmnatics.playground/ --enumerate t
+```
+
+- **wpscan** startet den scan
+- **--url http://cmnatics.playground/** Spezifiziert die zu scannende URL
+- **--enumerate** sorg dafür das enumeriert wird 
+- **t** Spezifiziert das die Themes/Designs Enumeriert werden
+
+Das Tolle an WPScan ist, dass das Tool einem mitteilt, wie es die Ergebnisse ermittelt hat. In diesem Fall wird uns gesagt, dass das „twentytwenty“-Theme durch Scannen von „Known Locations“ bestätigt wurde. Das „twentytwenty“-Theme ist das Standard-WordPress-Theme für WordPress-Versionen im Jahr 2020.
+
+## Enumeration von Installierten Plugins
