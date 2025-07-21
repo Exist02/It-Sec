@@ -1,3 +1,6 @@
+---
+c:
+---
 
 # Manuelle Enumeration
 
@@ -176,3 +179,72 @@ wpscan --url http://cmnatics.playground/ --enumerate t
 Das Tolle an WPScan ist, dass das Tool einem mitteilt, wie es die Ergebnisse ermittelt hat. In diesem Fall wird uns gesagt, dass das „twentytwenty“-Theme durch Scannen von „Known Locations“ bestätigt wurde. Das „twentytwenty“-Theme ist das Standard-WordPress-Theme für WordPress-Versionen im Jahr 2020.
 
 ## Enumeration von Installierten Plugins
+
+Eine sehr verbreitete Funktion von Webservern ist das „“Directory Listing„“, welches oft standardmäßig aktiviert ist. Einfach ausgedrückt, ist „Directory Listing“ die Auflistung der Dateien in dem Verzeichnis, zu dem wir navigieren (genau so, als ob wir den Windows Explorer oder den Linux-Befehl ls verwenden würden). URLs sind in diesem Zusammenhang den Dateipfaden sehr ähnlich.
+
+Beispiel:
+Die URL http://cmnatics.playground/a/directory ist eigentlich das konfigurierte Root-Verzeichnis des Webservers/a/directory.
+Ein „Directory Listing“ tritt auf, wenn keine Datei vorhanden ist, die der Webserver verarbeiten soll. Eine sehr häufige Datei ist „index.html“ und „index.php“. Da sich diese Dateien nicht im Verzeichnis /a/directory befinden, wird stattdessen der Inhalt angezeigt.
+WPScan kann diese Funktion als eine Technik nutzen, um nach installierten Plugins zu suchen. Da sie sich alle in /wp-content/plugins/pluginname befinden, kann WPScan nach gemeinsamen/bekannten Plugins enumieren. Im folgenden Screenshot wurde „easy-table-of-contents“ entdeckt. Großartig! Dies könnte verwundbar sein. Um das festzustellen, müssen wir die Versionsnummer kennen. Glücklicherweise bekommen wir diese von WordPress auf einem Teller serviert. Wenn wir die WordPress-Entwicklerdokumentation lesen, können wir etwas über "Plugin Readme's" erfahren, um herauszufinden, wie WPScan die Versionsnummer ermittelt hat. Plugins müssen einfach eine "README.txt"-Datei haben. Diese Datei enthält Meta-Informationen wie den Namen des Plugins, die WordPress-Versionen, mit denen es kompatibel ist, und eine Beschreibung.
+
+Kontext mit Bildern:
+https://imgur.com/LAW0mUo
+
+Wenn man dies mit WPScan machen möchte lautet die Syntax wie folgt:
+
+```
+wpscan --url http://cmnatics.playground/ --enumerate p
+```
+
+- **wpscan** startet den scan
+- **--url http://cmnatics.playground/** Spezifiziert die zu scannende URL
+- **--enumerate** sorg dafür das enumeriert wird 
+- **p** Spezifiziert das die Plugins Enumeriert werden
+
+## Enumeration von Usern
+
+Wir haben hervorgehoben, dass WPScan in der Lage ist, Brute-Forcing-Angriffe durchzuführen. Während wir eine Passwortliste wie rockyou.txt zur Verfügung stellen müssen, ist die Art und Weise, wie WPScan die Benutzer enumeriert, interessant und einfach. WordPress-Seiten verwenden Autoren für Beiträge. Autoren sind in der Tat eine Art von Benutzer
+Und tatsächlich, diese Autoren werden von unserem WPScan erfasst: 
+
+https://imgur.com/bdySd0X
+
+Syntax
+```
+wpscan --url http://cmnatics.playground/ --enumerate u
+```
+
+- **wpscan** startet den scan
+- **--url http://cmnatics.playground/** Spezifiziert die zu scannende URL
+- **--enumerate** sorg dafür das enumeriert wird 
+- **u** Spezifiziert das die User Enumeriert werden
+
+## Die „Vulnerable“ Flagge
+
+In den bisherigen Befehlen haben wir nur WordPress enumeriert, um herauszufinden, welche Themes, Plugins und Benutzer vorhanden sind. Im Moment müssten wir uns die Ausgabe ansehen und Websites wie MITRE, NVD und CVEDetails nutzen, um die Namen dieser Plugins und die Versionsnummern zu ermitteln, um eventuelle Schwachstellen festzustellen.
+
+WICHTIG 
+Damit das machbar ist muss WPScan Konfiguriert sein um mir der WPVuln-DB zu Verbinden guide unterhalb:
+https://wpscan.com/api/
+
+Syntax:
+```
+wpscan --url http://cmnatics.playground/ --enumerate vp
+```
+
+- **wpscan** startet den scan
+- **--url http://cmnatics.playground/** Spezifiziert die zu scannende URL
+- **--enumerate** sorg dafür das enumeriert wird 
+- **vp** Spezifiziert das nach schwachstellen geschaut werden soll
+
+## Passwort Bruteforcing
+
+Nachdem wir eine Liste möglicher Benutzernamen auf der WordPress-Installation ermittelt haben, können wir WPScan verwenden, um eine Brute-Forcing-Technik gegen den von uns angegebenen Benutzernamen und eine von uns bereitgestellte Passwortliste durchzuführen
+
+```
+wpscan –-url http://cmnatics.playground –-passwords rockyou.txt –-usernames cmnatic
+```
+
+- **wpscan** startet WPScan
+- **--url http://cmnatics.playground/** Spezifiziert die zu Ziel URL
+- **--passwords rockyou.txt** Spezifiziert welche Passwortliste genutzt wird
+- **--usernames cmnatic** Spezifiziert das der User cmnatic geburteforced werden soll
