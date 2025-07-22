@@ -1,7 +1,7 @@
 ---
 Website:
 ---
-
+go
 # Manuelle Enumeration
 
 Wir müssen nicht von Anfang an ein ausgefallenes Toolkit auspacken. In den meisten Fällen bringt es mehr Ergebnisse, wenn wir unsere eigene Initiative gegenüber automatischen Scans einsetzen. So können wir beispielsweise das „goldene Ticket“ finden, ohne viel Lärm zu machen.
