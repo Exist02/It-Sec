@@ -1,6 +1,6 @@
 
 ```
-echo "10.10.56.48 blog.thm" | sudo tee -a /etc/hosts
+echo "10.10.98.36 blog.thm" | sudo tee -a /etc/hosts
 ```
 
 # Walking The site
@@ -131,8 +131,8 @@ Intressant auf
 
 
 # Vorgehen 
->
-Versuch admin WPSite zu Bruteforcen. 
+
+ Versuch admin WPSite zu Bruteforcen. 
 - [SUCCESS] - kwheel / cutiepie1  
 	- Versuch revshell als blog bestandteil hochzuladen -> Kein Erfolg php geblocked
 	
