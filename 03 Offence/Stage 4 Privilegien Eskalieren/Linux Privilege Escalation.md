@@ -218,6 +218,10 @@ Jeder Benutzer auf dem System hat seine eigene crontab-Datei und kann bestimmte 
 
 Wiegesagt jeder User hat zugriff auf die Cron-Jobs unter `/etc/crontab`
 
+```
+cat /etc/crontab
+```
+
 Hier kann es auch vorkommen das ein Cronjob existiert aber das Script gelöscht wurde das der job ausführen soll. Das kann man dann natürliuch nutzen um ein eigenes Script mit passenden namen an der Passenden stelle einzufügen. Egal ob man jetzt das Scripüt anpasst oder ein neues hinerlegt kann man sich hier nach Herzenswunsch austoben um z.B. Automatisch eine Reverseshell mit Root rechten zu starten
 
 Das geht zum beispiel indem man das Script verwendet 
