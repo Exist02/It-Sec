@@ -117,3 +117,9 @@ Once you've downloaded the payload list, use the script on the AttackBox or your
 python3 script.py usernames_gmail.com.txt
 ```
 
+
+# Exploiting Vulnerable Password Reset Logic
+
+Der Mechanismus zum Zurücksetzen von Passwörtern ist ein wichtiger Bestandteil der Benutzerfreundlichkeit moderner Webanwendungen. Seine Implementierung erfordert jedoch sorgfältige Sicherheitsüberlegungen, da schlecht gesicherte Verfahren zum Zurücksetzen von Passwörtern leicht ausgenutzt werden können.
+
+## Email-Based Reset
