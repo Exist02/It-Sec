@@ -21,3 +21,6 @@ Angreifer provozieren verbose Fehler, um die Anwendung dazu zu zwingen, ihre Geh
 - **Datei-Einbindung/Pfad-Traversal**: Durch Manipulation von Dateipfaden können Angreifer versuchen, auf eingeschränkte Dateien zuzugreifen, indem sie das System zu Fehlern verleiten, die interne Pfade offenlegen. Beispielsweise kann die Verwendung von Verzeichnis-Traversal-Sequenzen wie `../../` zu Fehlern führen, die eingeschränkte Dateipfade offenlegen.
 
 - **Formularmanipulation:** Durch das Manipulieren von Formularfeldern oder Parametern kann die Anwendung dazu gebracht werden, Fehler anzuzeigen, die Backend-Logik oder sensible Benutzerinformationen offenlegen. Beispielsweise kann das Ändern versteckter Formularfelder, um Validierungsfehler auszulösen, Einblicke in das erwartete Datenformat oder die Struktur geben.
+
+- **Anwendungs-Fuzzing**: Das Senden unerwarteter Eingaben an verschiedene Teile der Anwendung, um deren Reaktion zu beobachten, kann dabei helfen, Schwachstellen zu identifizieren. Tools wie Burp Suite Intruder werden beispielsweise verwendet, um diesen Prozess zu automatisieren. Dabei wird die Anwendung mit verschiedenen Payloads bombardiert, um zu sehen, welche davon informative Fehler provozieren.
+
