@@ -24,3 +24,9 @@ Angreifer provozieren verbose Fehler, um die Anwendung dazu zu zwingen, ihre Geh
 
 - **Anwendungs-Fuzzing**: Das Senden unerwarteter Eingaben an verschiedene Teile der Anwendung, um deren Reaktion zu beobachten, kann dabei helfen, Schwachstellen zu identifizieren. Tools wie Burp Suite Intruder werden beispielsweise verwendet, um diesen Prozess zu automatisieren. Dabei wird die Anwendung mit verschiedenen Payloads bombardiert, um zu sehen, welche davon informative Fehler provozieren.
 
+## Die Rolle von Enumeration und Brute-Force-Angriffen
+
+Wenn es darum geht, Authentifizierungen zu knacken, gehen Enumeration und Brute-Force-Angriffe oft Hand in Hand:
+
+- **Benutzer-Enumeration:** Das Aufdecken gültiger Benutzernamen schafft die Voraussetzungen dafür, dass bei nachfolgenden Brute-Force-Angriffen weniger geraten werden muss.
+- **Ausnutzen von verbosen Fehlern:** Die aus diesen Fehlern gewonnenen Erkenntnisse können Aspekte wie Passwortrichtlinien und Mechanismen zur Kontosperrung aufzeigen und den Weg für effektivere Brute-Force-Strategien ebnen.
