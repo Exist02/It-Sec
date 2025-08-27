@@ -168,4 +168,16 @@ python3 script.py usernames_gmail.com.txt
 
 Der Mechanismus zum Zurücksetzen von Passwörtern ist ein wichtiger Bestandteil der Benutzerfreundlichkeit moderner Webanwendungen. Seine Implementierung erfordert jedoch sorgfältige Sicherheitsüberlegungen, da schlecht gesicherte Verfahren zum Zurücksetzen von Passwörtern leicht ausgenutzt werden können.
 
-## Email-Based Reset
+	 **Email-Based Reset**
+
+Wenn ein Benutzer sein Passwort zurücksetzt, sendet die Anwendung eine E-Mail mit einem Link zum Zurücksetzen oder einem Token an die registrierte E-Mail-Adresse des Benutzers. Der Benutzer klickt dann auf diesen Link, der ihn zu einer Seite weiterleitet, auf der er ein neues Passwort eingeben und bestätigen kann, oder das System generiert automatisch ein neues Passwort für den Benutzer. Diese Methode hängt stark von der Sicherheit des E-Mail-Kontos des Benutzers und der Geheimhaltung des gesendeten Links oder Tokens ab.
+
+	 **Security Question-Based Reset**
+
+Dabei muss der Benutzer eine Reihe von vorab konfigurierten Sicherheitsfragen beantworten, die er bei der Erstellung seines Kontos festgelegt hat. Sind die Antworten korrekt, erlaubt das System dem Benutzer, mit der Zurücksetzung seines Passworts fortzufahren. Diese Methode bietet zwar zusätzliche Sicherheit, da sie Informationen erfordert, die nur der Benutzer kennen sollte, kann jedoch kompromittiert werden, wenn ein Angreifer Zugriff auf personenbezogene Daten (PII) erhält, die manchmal leicht zu finden oder zu erraten sind.
+
+	 **SMS-Based Reset**
+
+Diese Funktion ähnelt der E-Mail-basierten Zurücksetzung, verwendet jedoch SMS, um einen Zurücksetzungscode oder einen Link direkt an das Mobiltelefon des Benutzers zu senden. Sobald der Benutzer den Code erhalten hat, kann er ihn auf der angegebenen Webseite eingeben, um auf die Funktion zur Zurücksetzung des Passworts zuzugreifen. Diese Methode setzt voraus, dass der Zugriff auf das Telefon des Benutzers sicher ist, kann jedoch anfällig für SIM-Swapping-Angriffe oder Abhörversuche sein.
+
+
