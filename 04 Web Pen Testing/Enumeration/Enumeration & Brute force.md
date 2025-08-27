@@ -28,8 +28,23 @@ if (preg_match($pattern, $password)) {
 ```
 
 
+## Plätze zum Enumerieren dieser Daten
 
+### Registrierung Seiten
 
+Webanwendungen gestalten den Registrierungsprozess für Benutzer in der Regel einfach und informativ, indem sie sofort anzeigen, ob eine E-Mail-Adresse oder ein Benutzername verfügbar ist. Diese Rückmeldung soll zwar die Benutzerfreundlichkeit verbessern, kann jedoch unbeabsichtigt einen doppelten Zweck erfüllen. Wenn bei einem Registrierungsversuch die Meldung erscheint, dass ein Benutzername oder eine E-Mail-Adresse bereits vergeben ist, bestätigt die Anwendung damit ungewollt jedem, der sich registrieren möchte, deren Existenz. Angreifer nutzen diese Funktion aus, indem sie potenzielle Benutzernamen oder E-Mail-Adressen testen und so eine Liste aktiver Benutzer zusammenstellen, ohne direkten Zugriff auf die zugrunde liegende Datenbank zu benötigen.
+
+### Passwort Reset Seiten
+
+Mechanismen zum Zurücksetzen von Passwörtern sollen Benutzern helfen, wieder Zugriff auf ihre Konten zu erhalten, indem sie ihre Daten eingeben, um Anweisungen zum Zurücksetzen zu erhalten. Die Unterschiede in der Reaktion der Anwendung können jedoch unbeabsichtigt sensible Informationen preisgeben. Beispielsweise können Abweichungen in der Rückmeldung einer Anwendung darüber, ob ein Benutzername existiert, Angreifern helfen, die Identität von Benutzern zu überprüfen. Durch die Analyse dieser Antworten können Angreifer ihre Listen mit gültigen Benutzernamen verfeinern und so die Wirksamkeit nachfolgender Angriffe erheblich verbessern.
+
+### Verbose Fehler
+
+Verbose Fehlermeldungen bei Anmeldeversuchen oder anderen interaktiven Prozessen können zu viel preisgeben. Wenn diese Meldungen zwischen „Benutzername nicht gefunden” und „falsches Passwort” unterscheiden, sollen sie den Benutzern helfen, ihre Anmeldeprobleme zu verstehen. Sie liefern Angreifern jedoch auch eindeutige Hinweise auf gültige Benutzernamen, die für gezieltere Angriffe ausgenutzt werden können.
+
+### Data Breach Informationen
+
+Daten aus früheren Sicherheitsverletzungen sind für Angreifer eine Goldgrube, da sie damit testen können, ob kompromittierte Benutzernamen und Passwörter auf verschiedenen Plattformen wiederverwendet werden. Findet ein Angreifer eine Übereinstimmung, deutet dies nicht nur darauf hin, dass der Benutzername wiederverwendet wird, sondern auch auf eine mögliche Wiederverwendung des Passworts, insbesondere wenn die Plattform bereits zuvor gehackt wurde. Diese Technik zeigt, wie sich die Auswirkungen einer einzigen Datenverletzung auf mehrere Plattformen auswirken können, indem die Verbindungen zwischen verschiedenen Online-Identitäten ausgenutzt werden.
 
 # Enumeration von Usern via Verbose Errors 
 
