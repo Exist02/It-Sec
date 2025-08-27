@@ -181,7 +181,7 @@ Dabei muss der Benutzer eine Reihe von vorab konfigurierten Sicherheitsfragen be
 --
 Diese Funktion ähnelt der E-Mail-basierten Zurücksetzung, verwendet jedoch SMS, um einen Zurücksetzungscode oder einen Link direkt an das Mobiltelefon des Benutzers zu senden. Sobald der Benutzer den Code erhalten hat, kann er ihn auf der angegebenen Webseite eingeben, um auf die Funktion zur Zurücksetzung des Passworts zuzugreifen. Diese Methode setzt voraus, dass der Zugriff auf das Telefon des Benutzers sicher ist, kann jedoch anfällig für SIM-Swapping-Angriffe oder Abhörversuche sein.
 
-
+---
 
 
 Jede dieser Methoden hat ihre Schwachstellen:
