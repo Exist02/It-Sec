@@ -182,3 +182,12 @@ Dabei muss der Benutzer eine Reihe von vorab konfigurierten Sicherheitsfragen be
 Diese Funktion ähnelt der E-Mail-basierten Zurücksetzung, verwendet jedoch SMS, um einen Zurücksetzungscode oder einen Link direkt an das Mobiltelefon des Benutzers zu senden. Sobald der Benutzer den Code erhalten hat, kann er ihn auf der angegebenen Webseite eingeben, um auf die Funktion zur Zurücksetzung des Passworts zuzugreifen. Diese Methode setzt voraus, dass der Zugriff auf das Telefon des Benutzers sicher ist, kann jedoch anfällig für SIM-Swapping-Angriffe oder Abhörversuche sein.
 
 
+
+
+Jede dieser Methoden hat ihre Schwachstellen:
+
+
+- **Vorhersehbare Tokens:** Wenn die in Links oder SMS-Nachrichten verwendeten Reset-Tokens vorhersehbar sind oder einem sequenziellen Muster folgen, können Angreifer diese erraten oder mit Brute-Force-Angriffen gültige Reset-URLs generieren.
+- **Probleme mit dem Ablauf von Tokens:** Tokens, die zu lange gültig bleiben oder nicht sofort nach der Verwendung ablaufen, bieten Angreifern eine Gelegenheit zum Angriff. Es ist entscheidend, dass Tokens schnell ablaufen, um diese Gelegenheit zu begrenzen.
+- **Unzureichende Validierung:** Die Mechanismen zur Überprüfung der Identität eines Benutzers, wie Sicherheitsfragen oder E-Mail-basierte Authentifizierung, können schwach und anfällig für Missbrauch sein, wenn die Fragen zu allgemein sind oder das E-Mail-Konto kompromittiert wurde.
+- **Unsichere Übertragung:** Die Übertragung von Links zum Zurücksetzen oder Tokens über Nicht-HTTPS-Verbindungen kann diese kritischen Elemente der Überwachung durch Netzwerk-Abhörer aussetzen.
