@@ -1,5 +1,8 @@
 # Authentification Enumeration -> Sollte ich schon haben
 
+
+
+
 # Enumeration von Usern via Verbose Errors 
 
 Verbose Errors werden  für gewöhnlich von Developern eingesetzt um Heraus zu finden wo es Problem in der Web App gab. Aber ähnlich wie bei einer Belauschten Konversation können auch die se zu viele Informationen Preisgeben. 
