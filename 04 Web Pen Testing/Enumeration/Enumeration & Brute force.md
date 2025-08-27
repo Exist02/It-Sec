@@ -1,4 +1,32 @@
-# Authentification Enumeration -> Sollte ich schon haben
+# Authentification Enumeration
+
+Die Authentifizierungs Enumeration ist wie das Schälen einer Zwiebel. Man entfernt jede Schicht der Systemsicherheit, um die darunter liegenden tatsächlichen Vorgänge aufzudecken. Dabei geht es nicht nur um Routinekontrollen, sondern darum, zu erkennen, wie alles miteinander verbunden ist.
+
+Das kann man sich etwas wie die Arbeit eines Detectives vorstellen, welcher nicht nur Spuren sammelt sondern auch schaut wie diese sich miteinander verbinden und über das Rätsel/den Fall aussagen.
+
+## Identifizieren von Validen Nutzernamen
+
+
+Wenn ein Angreifer einen gültigen Benutzernamen kennt, kann er sich ganz auf das Passwort konzentrieren. Benutzernamen lassen sich auf verschiedene Weise herausfinden, beispielsweise indem man beobachtet, wie die Anwendung beim Anmelden oder beim Zurücksetzen des Passworts reagiert. Fehlermeldungen wie „Dieses Konto existiert nicht“ oder „Falsches Passwort“ können Hinweise auf gültige Benutzernamen geben und einem Angreifer die Arbeit erleichtern.
+
+## Passwort Policies 
+
+Die Richtlinien zur Erstellung von Passwörtern können wertvolle Einblicke in die Komplexität der in einer Anwendung verwendeten Passwörter geben. Durch das Verständnis dieser Richtlinien kann ein Angreifer die potenzielle Komplexität der Passwörter einschätzen und seine Strategie entsprechend anpassen. Der folgende PHP-Code verwendet beispielsweise reguläre Ausdrücke, um ein Passwort zu verlangen, das Symbole, Zahlen und Großbuchstaben enthält.
+
+
+```php
+<?php
+$password = $_POST['pass']; // Example1
+$pattern = '/^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/';
+
+if (preg_match($pattern, $password)) {
+    echo "Password is valid.";
+} else {
+    echo "Password is invalid. It must contain at least one uppercase letter, one number, and one symbol.";
+}
+?>
+```
+
 
 
 
