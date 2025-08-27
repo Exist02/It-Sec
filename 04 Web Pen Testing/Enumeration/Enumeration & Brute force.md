@@ -89,6 +89,7 @@ Wenn die E-Mail-Adresse jedoch bereits registriert ist, gibt die Website die Feh
 
 https://imgur.com/Oaf5P8u
 
+
 ### Praktisches Beispiel (Automatisiert):
 
 Nachfolgend finden Sie ein Python-Skript, das die Ziel-Webanwendung auf gültige E-Mail-Adressen überprüft. Speichern Sie den folgenden Code als script.py.
