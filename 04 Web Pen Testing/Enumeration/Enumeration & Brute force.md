@@ -77,7 +77,7 @@ Wenn es darum geht, Authentifizierungen zu knacken, gehen Enumeration und Brute-
 - **Benutzer-Enumeration:** Das Aufdecken gültiger Benutzernamen schafft die Voraussetzungen dafür, dass bei nachfolgenden Brute-Force-Angriffen weniger geraten werden muss.
 - **Ausnutzen von verbosen Fehlern:** Die aus diesen Fehlern gewonnenen Erkenntnisse können Aspekte wie Passwortrichtlinien und Mechanismen zur Kontosperrung aufzeigen und den Weg für effektivere Brute-Force-Strategien ebnen.
 
-## Praktisches Beispiel Manuell: 
+## Praktisches Beispiel (Manuell): 
 In diesem HackerOne-Bericht konnte der Angreifer mithilfe der Funktion „Passwort vergessen“ der Website Benutzer auflisten. Auf ähnliche Weise können wir auch E-Mail-Adressen in Anmeldeformularen auflisten. Navigieren Sie beispielsweise zu http://enum.thm/labs/verbose_login/ und geben Sie eine beliebige E-Mail-Adresse in das Eingabefeld „E-Mail“ ein.
 
 
@@ -89,7 +89,7 @@ Wenn die E-Mail-Adresse jedoch bereits registriert ist, gibt die Website die Feh
 
 https://imgur.com/Oaf5P8u
 
-### Praktisches Beispiel mit Automatisierung:
+### Praktisches Beispiel (Automatisiert):
 
 Nachfolgend finden Sie ein Python-Skript, das die Ziel-Webanwendung auf gültige E-Mail-Adressen überprüft. Speichern Sie den folgenden Code als script.py.
 
