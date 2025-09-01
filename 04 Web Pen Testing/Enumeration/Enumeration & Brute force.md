@@ -192,3 +192,25 @@ Jede dieser Methoden hat ihre Schwachstellen:
 - **Probleme mit dem Ablauf von Tokens:** Tokens, die zu lange gültig bleiben oder nicht sofort nach der Verwendung ablaufen, bieten Angreifern eine Gelegenheit zum Angriff. Es ist entscheidend, dass Tokens schnell ablaufen, um diese Gelegenheit zu begrenzen.
 - **Unzureichende Validierung:** Die Mechanismen zur Überprüfung der Identität eines Benutzers, wie Sicherheitsfragen oder E-Mail-basierte Authentifizierung, können schwach und anfällig für Missbrauch sein, wenn die Fragen zu allgemein sind oder das E-Mail-Konto kompromittiert wurde.
 - **Unsichere Übertragung:** Die Übertragung von Links zum Zurücksetzen oder Tokens über Nicht-HTTPS-Verbindungen kann diese kritischen Elemente der Überwachung durch Netzwerk-Abhörer aussetzen.
+
+
+## Exploiten von Vorhersehbare Tokens
+
+Einfache, vorhersehbare oder lange gültige Tokens können besonders anfällig für Abfangversuche oder Brute-Force-Angriffe sein. Der folgende Code wird beispielsweise von der anfälligen Anwendung verwendet, die im Predictable Tokens Lab gehostet wird:
+
+```php
+$token = mt_rand(100, 200);
+$query = $conn->prepare("UPDATE users SET reset_token = ? WHERE email = ?");
+$query->bind_param("ss", $token, $email);
+$query->execute();
+```
+
+Der obige Code legt eine zufällige dreistellige PIN als Reset-Token für die übermittelte E-Mail fest. Da dieses Token keine gemischten Zeichen verwendet, können Brute-Force-Angriffe leicht durchgeführt werden.
+
+Praktisches Beispiel: 
+
+Rahmenbedingungen: 
+- bekannt ist bereits das die Email adresse admin@admin.com verwendet wird. 
+- zudem ist bekannt, dass der Reset link wie folgt aussieht: 'http://enum.thm/labs/predictable_tokens/reset_password.php?token=123', kann man sich sonst auch herleiten indem man selbst einen acc anlegt und PW resettet.
+
+Wie man in der URL sehen kann besteht der Token aus einem Dreistelligen Numerischen 
