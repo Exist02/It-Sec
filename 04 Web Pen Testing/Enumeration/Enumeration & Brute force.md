@@ -213,4 +213,32 @@ Rahmenbedingungen:
 - bekannt ist bereits das die Email adresse admin@admin.com verwendet wird. 
 - zudem ist bekannt, dass der Reset link wie folgt aussieht: 'http://enum.thm/labs/predictable_tokens/reset_password.php?token=123', kann man sich sonst auch herleiten indem man selbst einen acc anlegt und PW resettet.
 
-Wie man in der URL sehen kann besteht der Token aus einem Dreistelligen Numerischen 
+Wie man in der URL sehen kann besteht der Token aus einer dreistelligen Ziffer Kombination. Nun öffnen wir BurpSuite und Capturen einen zugiff auf die URL des Reset Links. Diese Capture können wir dann an Intruder weiterleiten und den Ziffer Bereich als Payload Position Markieren. Um jetzt erfolgreich die Ziffer Kombination zu Bruteforcen benötigen wir noch eine Passende payload diese erstellen wir mit: 
+
+```
+crunch 3 3 -o otp.txt -t %%% -s 100 -e 200
+```
+
+Für das beispiel nutzen wir nur eine liste mit werten von 100-200 sonst natürlich erweiterbar auf 100-999. Die Jetzt erstellte Wordlist wählen wir dann in Intruder aus und starten dann den Angriff. Wenn wir dann eine Response bekommen die größer ist als der Rest wissen wir das wir getroffen haben. Hier schauen wir uns nun die Response an un Tadaa wir haben das neue PW.
+
+# Exploiting HTTP Basic Authentication
+
+## Basic Authentification in 2k25
+
+Die Basisauthentifizierung bietet eine einfachere Methode zur Sicherung des Zugriffs auf Geräte. Sie erfordert lediglich einen Benutzernamen und ein Passwort und lässt sich daher leicht auf Geräten mit begrenzten Verarbeitungskapazitäten implementieren und verwalten. Netzwerkgeräte wie Router verwenden in der Regel die Basisauthentifizierung, um den Zugriff auf ihre Verwaltungsschnittstellen zu kontrollieren.
+
+Die Basisauthentifizierung bietet zwar nicht die robusten Sicherheitsfunktionen komplexerer Verfahren wie OAuth oder tokenbasierter Authentifizierung, eignet sich jedoch aufgrund ihrer Einfachheit für Umgebungen, in denen keine Sitzungsverwaltung und Benutzerverfolgung erforderlich sind oder anders gehandhabt werden. Bei Geräten wie Routern, auf die in erster Linie für Konfigurationsänderungen und nicht für den regulären Gebrauch zugegriffen wird, ist der Aufwand für die Verwaltung von Sitzungszuständen unnötig und könnte die Geräteleistung beeinträchtigen.
+
+Die HTTP-Basisauthentifizierung ist in RFC 7617 definiert, wo festgelegt ist, dass die Anmeldedaten (Benutzername und Passwort) als Base64-kodierte Zeichenfolge im HTTP-Autorisierungsheader übertragen werden sollen. Diese Methode ist unkompliziert, aber über **Nicht-HTTPS-Verbindungen** **nicht sicher, da** **Base64 keine Verschlüsselungsmethode** ist und leicht entschlüsselt werden kann. Die eigentliche Gefahr geht oft von schwachen Anmeldedaten aus, die mit Brute-Force-Angriffen geknackt werden können.
+
+Die HTTP-Basisauthentifizierung bietet einen einfachen Challenge-Response-Mechanismus für die Anforderung von Benutzeranmeldedaten.
+
+https://imgur.com/ITMC5k4
+
+Das Format des Autorisierungsheaders lautet wie folgt:
+
+```html
+Authorization: Basic <credentials>
+```
+
+wobei `<credentials>` die Base64-Kodierung von `Benutzername:Passwort` ist. Detaillierte Spezifikationen finden Sie in RFC 7617.
