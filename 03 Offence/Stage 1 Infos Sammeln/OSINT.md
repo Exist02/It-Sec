@@ -1,4 +1,4 @@
-## Interessanter Content
+# Interessanter Content
 
 ###### **Seiten Quelle** 
 via: view-source:_URL_
@@ -41,3 +41,26 @@ Eine gängige Automatisierungsmethode ist die Verwendung des Firmennamens gefolg
 Schema:
 http(s)://{name}.s3.amazonaws.com
 Bsp.: [tryhackme-assets.s3.amazonaws.com](http://tryhackme-assets.s3.amazonaws.com/)
+
+# Wayback Maschine 
+
+Stellen wir uns die Wayback Machine des Internetarchivs (https://archive.org/web/) als eine Art Zeitmaschine vor. Mit ihr können wir in die Vergangenheit reisen und ältere Versionen von Websites erkunden, um Dateien und Verzeichnisse aufzuspüren, die nicht mehr sichtbar sind, aber möglicherweise noch auf dem Server vorhanden sind. Diese Relikte können manchmal eine Hintertür zum aktuellen System bieten.
+
+Um alle in Wayback Machine gespeicherten Links zu dumpen, können wir das Tool namens waybackurls verwenden. Es wird auf GitHub gehostet und lässt sich mit den folgenden Befehlen ganz einfach auf unserem Rechner installieren:
+
+```
+git clone https://github.com/tomnomnom/waybackurls 
+user@tryhackme $ cd waybackurls 
+user@tryhackme $ sudo apt install golang-go -y # This command is optional 
+user@tryhackme $ go build 
+user@tryhackme $ ls -lah
+```
+
+# Google Dorks
+
+Hier kommt Ihr Geschick im Umgang mit Suchmaschinen zum Tragen. Durch die Erstellung spezifischer Suchanfragen, bekannt als Google Dorks, können Sie Informationen finden, die nicht für die Öffentlichkeit bestimmt waren. Diese Suchanfragen können alles aufrufen, von offengelegten Verwaltungsverzeichnissen bis hin zu Protokollen, die Passwörter und Indizes sensibler Verzeichnisse enthalten. Zum Beispiel:
+
+
+- Um Verwaltungsbereiche zu finden: site:example.com inurl:admin
+- Um Protokolldateien mit Passwörtern aufzudecken: filetype:log „password” site:example.com
+- Um Backup-Verzeichnisse zu finden: intitle:„index of“ „backup“ site:example.com

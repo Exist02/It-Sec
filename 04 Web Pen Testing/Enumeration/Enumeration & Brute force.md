@@ -242,3 +242,25 @@ Authorization: Basic <credentials>
 ```
 
 wobei `<credentials>` die Base64-Kodierung von `Benutzername:Passwort` ist. Detaillierte Spezifikationen finden Sie in RFC 7617.
+
+## Exploitation anhand von Beispiel:
+
+- Ziel URL: ' http://enum.thm/labs/basic_auth/'
+- Bekannter User Admin
+
+Zuerst rufen wir die Adresse auf und lassen im Hintergrund Burp Proxy mitschneiden. Dann machen wir einen Loginversuch mit User admin und irgendeinem zufälligen Passwort. Diese Anfrage senden wir dann auch an Intruder weiter. 
+
+In intruder können wir dann hergehen den Base64 string auswählen und via Rechtsklick decoden lassen. Den Decoded String wählen wir nun als Payload Spot aus.
+
+https://imgur.com/T4gynlP
+
+Als angriffstyp wählen wir Sniper, für dieses Besipiel nutzen wir die 500-worst-passwords.txt findbar unter '/usr/share/wordlists/SecLists/Passwords/Common-Credentials/500-worst-passwords.txt'. Da wir aber nicht direkt mit Cleartext angreifen können müssen wir noch 2 Regeln Definieren. 
+
+1. Add Prefix 
+	1. Wird gemacht da wir Spezifizieren wollen das der Request mit dem username "admin=" anfängt
+2. Encode Base 64
+	1. damit die Anfrage im Korrekten Format beim Server ankommt
+	2. Bei den Encode Optionen unterhalb müssen wir jetzt noch das "=" entfernen da dieses in die Quere kommen kann bei Base 64
+
+Jetzt Können wir angreifen. Sobald wir eine Response mit Status 200 bekommen wissen wir das der angriff Funktioniert hat und wir drinne sind.  Jetzt können wir hier in das Request Feld gehen und den Base 64 String decoden um das PW zu erhalten. in dem Beispiel War User: Admin und PW: yellow
+https://imgur.com/nIoSFEH
