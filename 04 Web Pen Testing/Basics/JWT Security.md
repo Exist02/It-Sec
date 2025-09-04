@@ -62,7 +62,7 @@ Sehen wir uns ein praktisches Beispiel an. Authentifizieren wir uns mit der folg
 
 `curl -H 'Content-Type: application/json' -X POST -d '{ "username" : "user", "password" : "password1" }' http://10.10.82.44/api/v1.0/example1`
 
-Dadurch erhalten Sie ein JWT-Token. Entschlüsseln Sie nach der Wiederherstellung den Textkörper des JWT, um sensible Informationen aufzudecken. Sie können den Textkörper manuell entschlüsseln oder hierfür eine Website wie `JWT.io` verwenden.
+Dadurch erhalten Sie ein JWT-Token. Entschlüsseln Sie nach der Wiederherstellung den Textkörper des JWT, um sensible Informationen aufzudecken. Sie können den Textkörper manuell entschlüsseln oder hierfür eine Website wie `JWT.io` verwenden. https://www.jwt.io/
 
 ### Was ist hier der Fehler
 In diesem Beispiel wurden sensible Informationen zum Anspruch hinzugefügt, wie unten dargestellt:
