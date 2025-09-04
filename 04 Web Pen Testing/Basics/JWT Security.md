@@ -1,0 +1,6 @@
+# Token based Authentifizierung
+
+## APIs 
+Application Programming Interfaces, kurz APIs, sind heute unglaublich beliebt. Einer der Hauptgründe für diesen Boom ist die Möglichkeit, eine einzige API zu erstellen, die dann mehrere verschiedene Schnittstellen, wie z. B. eine Webanwendung und eine mobile Anwendung, gleichzeitig bedienen kann. Dadurch kann die gleiche serverseitige Logik zentralisiert und für alle Schnittstellen wiederverwendet werden. Aus Sicherheitsperspektive ist dies in der Regel auch von Vorteil, da wir so die serverseitige Sicherheit in einer einzigen API implementieren können, die dann unseren Server unabhängig von der verwendeten Schnittstelle schützt.
+
+Mit dem Aufkommen von APIs wurden jedoch auch neue Methoden zur Session-Verwaltung entwickelt. Da Cookies in der Regel mit Webanwendungen verbunden sind, die über einen Browser genutzt werden, funktioniert die Cookie-basierte Authentifizierung für APIs in der Regel nicht so gut, da die Lösung dann nicht für andere Schnittstellen geeignet ist. Hier kommt die tokenbasierte Session-Verwaltung ins Spiel.
