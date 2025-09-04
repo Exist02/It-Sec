@@ -125,3 +125,48 @@ Bei der Beendigung von Sitzungen ist das Hauptproblem, dass Sitzungen auf Server
 
 # Exploiting Insecure Session Management
 
+Gegebenheit: 
+- Wir haben eine Schulwebsite mit Login und Register Flächen für Schüler und Lehrer
+
+Zuerst fangen wir an und schauen uns an was für User wir erstellen können. Hier bleibt lediglich der Student User da der Lecturer User einen Verification Code benötigt. Entsprechend Legen wir uns einen Student account an und melden uns auf diesem an. 
+
+Wenn wir nach dem anmelden via F12 in die Dev Tools > Network reinschauen können wir mehrere Sachen in dem Post zum Anmelden erkennen. 
+1. Es werden Cookies zur Session verwaltung genutzt. 
+2. die HTTP-Only Flag ist gesetzt, d.H. wir können kein Lokales Javascript nutzen um den Cookie zu lesen
+3. Der Ablauf zeitraum des Cookies ist Komisch da sowohl die Creation und der Ablauf auf dem Selben Zeitraum gesetzt ist. 
+
+Wenn wir uns den Netzwerk Traffik genauer anschauen erkennen wir auch das dass Session Tracking via Cookie so gemacht wird das er bei jeder Anfrage abgefragt wird. Wenn wir den Cookie Jetzt entfernen und die Seite neu laden stellen wir Fest das die Session allerdings weiterhin besteht. Was uns auf einen persistenten Cookie schließen lässt. 
+
+Da es ein Persistenter Cookie ist lohnt es sich Potenziell sich den Cookie direkt anzuschauen via F12 > Storrage > Cookies. Dies würde weitere Untersuchungen erfordern, um den Lebenszyklus der Session-Verwaltung vollständig abzubilden. Wir werden die Dinge jedoch etwas einfacher halten. Werfen wir einen Blick auf die Abmeldefunktion. Sobald wir auf die Schaltfläche „Abmelden” klicken, sehen wir, dass unsere Session auf der Client-Seite entfernt wird. Jetzt gilt es zu Testen ob die Session auch serverseitig terminiert wurde. Man kann sich erneut bei der Anwendung authentifizieren und das neue Cookie durch den alten Cookie-Wert ersetzen. Es scheint jedoch, als würde die Beendigung der Session bis zu einem gewissen Grad funktionieren, da man beim erneuten Aufruf einen 500 Internal Server Error erhält.
+
+Also gehen wir nochmal einen schritt zurück und schauen uns die Cookies an, diesmal aber unter F12 > Storrage > Local Storrage
+
+https://imgur.com/Aq65QXu
+
+Und schon haben wir was sehr intressantes gefunden. Die user Zeile gibt an wer sich authentifiziert hat und due userRole ob es ein Student oder ein Lehrer ist. Wenn wir hier etwas herumspielen können wir unser userkonto von Student auf lehrer Wechseln und erhalten so weiteren einblick und mehr rechte auf der Seite.
+
+
+Nun haben wir den Lebenszyklus des Session-Managements dargestellt. Sehen wir uns das einmal an:
+
+| **Lifecycle Phase** | **Observation**                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------------ |
+| Session Creation    | A combination of cookie- and token-based session management is being used                        |
+| Session Creation    | A new session value is provided for each login attempt                                           |
+| Session Creation    | The session value itself appears to be sufficiently random                                       |
+| Session Tracking    | Unauthenticated actions are not tracked via a session                                            |
+| Session Tracking    | The cookie is sent in each request for tracking                                                  |
+| Session Tracking    | Several requests can be made without a cookie                                                    |
+| Session Tracking    | The initial token values that are loaded post-authentication dictate the visible information     |
+| Session Expiry      | There is a mismatch between the client-side and server-side expiry times                         |
+| Session Expiry      | The expiry time is incredibly long                                                               |
+| Session Termination | Users can forcibly terminate their session                                                       |
+| Session Termination | Sessions are terminated server-side but reusing an old session leads to an internal server error |
+Angesichts all dieser Informationen würden wir bereits die folgenden Schwachstellen in einer Sicherheitsbewertung melden:
+
+- Übermäßige Sitzungsdauer
+
+Außerdem müssten wir Folgendes weiter untersuchen:
+
+- Zugriffskontrollen für alle API-Endpunkte
+
+- Webanwendungsprotokolle zur Nachvollziehbarkeit von Aktionen
