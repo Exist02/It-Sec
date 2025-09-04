@@ -26,3 +26,28 @@ curl -H 'Authorization: Bearer [JWT token]' http://10.10.82.44/api/v1.0/example2
 
 Die Komponente [JWT-Token] muss durch den JWT ersetzt werden, der bei der ersten Anfrage empfangen wurde. In diesem Fall kann Y je nach Ihren Berechtigungen entweder „user” oder „admin” sein.
 
+# JWTs 
+
+## JWT Struktur
+
+Ein JWT besteht aus drei Komponenten, die jeweils Base64Url-kodiert und durch Punkte getrennt sind:
+
+**Header** – Der Header gibt in der Regel den Typ des Tokens an, in diesem Fall JWT, sowie den verwendeten Signaturalgorithmus.
+
+**Payload** – Die Payload ist der Hauptteil des Tokens, der die Claims enthält. Ein Claim ist eine Information, die für eine bestimmte Entität bereitgestellt wird. In JWTs gibt es registrierte Ansprüche, die durch den JWT-Standard vordefiniert sind, sowie öffentliche oder private Ansprüche. Die öffentlichen und privaten Ansprüche werden vom Entwickler definiert. Es ist wichtig, den Unterschied zwischen öffentlichen und privaten Ansprüchen zu kennen, jedoch nicht aus Sicherheitsgründen.
+
+**Signatur** – Die Signatur ist der Teil des Tokens, der eine Methode zur Überprüfung der Authentizität des Tokens bereitstellt. Die Signatur wird unter Verwendung des im Header des JWT angegebenen Algorithmus erstellt.
+
+## Signing Algorithms
+
+Obwohl im JWT-Standard mehrere verschiedene Algorithmen definiert sind, interessieren uns eigentlich nur drei Hauptalgorithmen:
+
+**None** – Der None-Algorithmus bedeutet, dass für die Signatur kein Algorithmus verwendet wird. Tatsächlich handelt es sich hierbei um ein JWT ohne Signatur, was bedeutet, dass die im JWT enthaltenen Angaben nicht anhand der Signatur überprüft werden können.
+**Symmetrische Signatur** – Ein symmetrischer Signaturalgorithmus wie HS256 erstellt die Signatur, indem er einen geheimen Wert an den Header und den Body des JWT anhängt, bevor er einen Hashwert generiert. Die Überprüfung der Signatur kann von jedem System durchgeführt werden, das den geheimen Schlüssel kennt.
+**Asymmetrische Signatur** – Ein asymmetrischer Signaturalgorithmus wie RS256 erstellt die Signatur, indem er einen privaten Schlüssel verwendet, um den Header und den Body des JWT zu signieren. Diese wird erstellt, indem der Hash generiert und dann mit dem privaten Schlüssel verschlüsselt wird. Die Überprüfung der Signatur kann von jedem System durchgeführt werden, das den öffentlichen Schlüssel kennt, der mit dem privaten Schlüssel verknüpft ist, der zur Erstellung der Signatur verwendet wurde.
+
+## Sicherheit in der Signatur
+
+JWTs können verschlüsselt werden (sogenannte JWEs), aber die eigentliche Stärke von JWTs liegt in der Signatur. Sobald ein JWT signiert ist, kann er an den Client gesendet werden, der diesen JWT bei Bedarf verwenden kann. Wir können einen zentralen Authentifizierungsserver einrichten, der die JWTs erstellt, die in mehreren Anwendungen verwendet werden. Jede Anwendung kann dann die Signatur des JWT überprüfen. Wenn die Signatur bestätigt wird, können die im JWT enthaltenen Angaben als vertrauenswürdig angesehen und entsprechend verarbeitet werden.
+
+# Sensetive Information Disclosure
