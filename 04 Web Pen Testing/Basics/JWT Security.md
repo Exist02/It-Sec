@@ -51,3 +51,38 @@ Obwohl im JWT-Standard mehrere verschiedene Algorithmen definiert sind, interess
 JWTs können verschlüsselt werden (sogenannte JWEs), aber die eigentliche Stärke von JWTs liegt in der Signatur. Sobald ein JWT signiert ist, kann er an den Client gesendet werden, der diesen JWT bei Bedarf verwenden kann. Wir können einen zentralen Authentifizierungsserver einrichten, der die JWTs erstellt, die in mehreren Anwendungen verwendet werden. Jede Anwendung kann dann die Signatur des JWT überprüfen. Wenn die Signatur bestätigt wird, können die im JWT enthaltenen Angaben als vertrauenswürdig angesehen und entsprechend verarbeitet werden.
 
 # Sensetive Information Disclosure
+
+Das erste häufige Problem, mit dem wir uns befassen werden, ist die Offenlegung sensibler Informationen innerhalb des JWT. Bei Tokens werden die Ansprüche jedoch offengelegt, da das gesamte JWT clientseitig gesendet wird. Wenn dieselbe Entwicklungspraxis befolgt wird, können sensible Informationen offengelegt werden. Einige Beispiele sind in realen Anwendungen zu sehen:
+- Offenlegung von Anmeldedaten mit dem Passwort-Hash oder, noch schlimmer, dem Klartext-Passwort, das als Anspruch gesendet wird.
+- Offenlegung interner Netzwerkinformationen wie der privaten IP-Adresse oder des Hostnamens des Authentifizierungsservers.
+
+## Praktisches Beispiel
+
+Sehen wir uns ein praktisches Beispiel an. Authentifizieren wir uns mit der folgenden cURL-Anfrage bei unserer API:
+
+`curl -H 'Content-Type: application/json' -X POST -d '{ "username" : "user", "password" : "password1" }' http://10.10.82.44/api/v1.0/example1`
+
+Dadurch erhalten Sie ein JWT-Token. Entschlüsseln Sie nach der Wiederherstellung den Textkörper des JWT, um sensible Informationen aufzudecken. Sie können den Textkörper manuell entschlüsseln oder hierfür eine Website wie `JWT.io` verwenden.
+
+### Was ist hier der Fehler
+In diesem Beispiel wurden sensible Informationen zum Anspruch hinzugefügt, wie unten dargestellt:
+
+```
+payload = { 
+"username" : username, 
+"password" : password, 
+"admin" : 0, 
+"flag" : "[redacted]" 
+} 
+access_token = jwt.encode(payload, self.secret, algorithm="HS256")
+```
+
+### Der Fix 
+Werte wie das Passwort oder die Flagge sollten nicht als Ansprüche hinzugefügt werden, da das JWT auf der Clientseite gesendet wird. Stattdessen sollten diese Werte sicher auf der Serverseite im Backend gespeichert werden. Bei Bedarf kann der Benutzername aus einem verifizierten JWT gelesen und zum Nachschlagen dieser Werte verwendet werden, wie im folgenden Beispiel gezeigt:
+
+```
+payload = jwt.decode(token, self.secret, algorithms="HS256") 
+
+username = payload['username'] 
+flag = self.db_lookup(username, "flag")
+```
