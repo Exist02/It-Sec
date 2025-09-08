@@ -343,3 +343,4 @@ elif "HS" in algorithm:
 username = payload['username'] 
 flag = self.db_lookup(username, "flag")
 ```
+
