@@ -192,3 +192,16 @@ Jetzt können wir die Erste Anfrage wieder zusammensetzen.
 ```
 curl -H 'Authorization: Bearer ["eyJ0eXAiOiJKV1QiLCJhbGciOiJOb25lIn0.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MX0._yybkWiZVAe1djUIE9CRa0wQslkRmLODBPNsjsY8FO8"]' http://10.10.49.39/api/v1.0/example3?username=admin
 ```
+
+### Der Fehler im Code
+
+Auch wenn dies wie das gleiche Problem wie zuvor erscheint, ist es aus Entwicklersicht etwas komplexer. Manchmal möchten Entwickler sicherstellen, dass ihre Implementierung mehrere JWT-Signaturprüfungsalgorithmen akzeptiert. Die Implementierung würde dann in der Regel den Header des JWT lesen und den gefundenen Algorithmus in die Signaturprüfungskomponente einlesen, wie unten gezeigt:
+
+```
+header = jwt.get_unverified_header(token) 
+
+signature_algorithm = header['alg'] 
+
+payload = jwt.decode(token, self.secret, algorithms=signature_algorithm)
+```
+
