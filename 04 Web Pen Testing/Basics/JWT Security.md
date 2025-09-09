@@ -344,3 +344,38 @@ username = payload['username']
 flag = self.db_lookup(username, "flag")
 ```
 
+# JWT Lifetimes
+
+Vor der Überprüfung der Signatur des Tokens sollte dessen Lebensdauer berechnet werden, um sicherzustellen, dass das Token nicht abgelaufen ist. Dies geschieht in der Regel durch Auslesen des exp-Claims (Ablaufzeit) aus dem Token und Berechnung, ob das Token noch gültig ist.
+
+Ein häufiges Problem ist, dass bei einem zu hohen (oder gar keinem) exp-Wert das Token zu lange gültig bleibt oder sogar nie abläuft. Bei Cookies kann der Cookie serverseitig auf abgelaufen gestellt werden. JWTs verfügen jedoch nicht über diese integrierte Funktion. Wenn wir ein Token vor Ablauf der exp-Zeit ablaufen lassen möchten, müssen wir eine Sperrliste dieser Token führen, wodurch das Modell dezentraler Anwendungen, die denselben Authentifizierungsserver verwenden, durchbrochen wird. Daher sollte bei der Auswahl des richtigen exp-Werts unter Berücksichtigung der Funktionalität der Anwendung Sorgfalt walten gelassen werden. Beispielsweise wird für einen Mailserver wahrscheinlich ein anderer exp-Wert verwendet als für eine Bankanwendung.
+
+Ein weiterer Ansatz ist die Verwendung von Refresher-Tokens. Wenn Sie eine API testen möchten, die JWTs verwendet, empfiehlt es sich, sich mit diesen Tokens auseinanderzusetzen.
+
+### Praktisches Beispiel 
+
+Da die Tokens nicht ablaufen haben wir hier einen 300+ Tage alten Token bekommen mit dem wir uns einfach authentifizieren können wie Folgt: 
+
+```
+curl -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MX0.ko7EQiATQQzrQPwRO8ZTY37pQWGLPZWEvdWH0tVDNPU' http://10.10.27.245/api/v1.0/example6?username=admin
+```
+
+### Fehler beim Dev
+
+Wie oben erwähnt, hat der JWT keinen exp-Wert, was bedeutet, dass er dauerhaft gültig ist. Falls kein exp-Claim vorhanden ist, würden die meisten JWT-Bibliotheken das Token als gültig akzeptieren, wenn die Signatur verifiziert ist.
+
+### Fix
+
+Den Claims sollte ein exp-Wert hinzugefügt werden. Nach dem Hinzufügen überprüfen die meisten Bibliotheken bei der Gültigkeitsprüfung auch die Ablaufzeit des JWT. Dies kann wie im folgenden Beispiel gezeigt erfolgen:
+
+```
+lifetime = datetime.datetime.now() + datetime.timedelta(minutes=5) 
+
+payload = { 
+	'username' : username, 
+	'admin' : 0, 
+	'exp' : lifetime 
+} 
+
+access_token = jwt.encode(payload, self.secret, algorithm="HS256")
+```
