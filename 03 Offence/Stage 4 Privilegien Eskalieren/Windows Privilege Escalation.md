@@ -438,3 +438,27 @@ wmic product get name,version,vendor
 ```
 
 Zu beachten ist, dass der Befehl wmic product möglicherweise nicht alle installierten Programme zurückgibt. Je nachdem, wie einige der Programme installiert wurden, sind sie hier möglicherweise nicht aufgeführt. Es lohnt sich immer, Desktop-Verknüpfungen, verfügbare Dienste oder generell alle Spuren zu überprüfen, die auf das Vorhandensein zusätzlicher Software hinweisen, die anfällig sein könnte. Sobald wir Informationen über die Produktversionen gesammelt haben, können wir jederzeit online auf Websites wie exploit-db, packet storm oder dem guten alten Google nach vorhandenen Exploits für die installierte Software suchen, neben vielen anderen.
+
+
+# Impersination token
+
+Windows verwendet Tokens, um sicherzustellen, dass Konten über die richtigen Berechtigungen verfügen, um bestimmte Aktionen auszuführen. Kontotokens werden einem Konto zugewiesen, wenn sich Benutzer anmelden oder authentifiziert werden. Dies erfolgt in der Regel durch LSASS.exe (stellen Sie sich dies als Authentifizierungsprozess vor).
+
+Dieses Zugriffstoken besteht aus:
+- Benutzer-SIDs (Sicherheitskennung)
+- Gruppen-SIDs
+- Berechtigungen
+  
+Es gibt zwei Arten von Zugriffstoken:
+
+**Primäre Zugriffstoken**: Diese sind mit einem Benutzerkonto verknüpft und werden bei der Anmeldung generiert.
+**Identitätswechsel-Token**: Diese ermöglichen es einem bestimmten Prozess (oder Thread in einem Prozess), mithilfe des Tokens eines anderen (Benutzer-/Client-)Prozesses Zugriff auf Ressourcen zu erhalten.
+
+
+**Für Identitätswechsel-Token gibt es verschiedene Stufen:**
+
+SecurityAnonymous: Der aktuelle Benutzer/Client kann sich nicht als anderer Benutzer/Client ausgeben.
+SecurityIdentification: Der aktuelle Benutzer/Client kann die Identität und Berechtigungen eines Clients abrufen, sich jedoch nicht als dieser ausgeben.
+SecurityImpersonation: Der aktuelle Benutzer/Client kann sich auf dem lokalen System als der Sicherheitskontext des Clients ausgeben.
+SecurityDelegation: Der aktuelle Benutzer/Client kann sich auf einem Remote-System als der Sicherheitskontext des Clients ausgeben.
+
