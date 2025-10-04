@@ -145,3 +145,5 @@ meterpreter > getuid
 Server username: NT AUTHORITY\SYSTEM
 
 ```
+
+wie wir nach der Kontroller mit "getuid" sehen sind wir erfolgreich von den Rechten aufggestiegen.
