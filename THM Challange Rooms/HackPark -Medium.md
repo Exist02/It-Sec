@@ -189,3 +189,18 @@ rev.exe
 
 Schon haben wir die Rev shell mit dem Handler gefangen
 
+# Privilegien Eskalieren 
+
+## Low hanging Fruit 
+
+Was man immer mal probieren kann ist 
+
+```
+getsystem
+```
+
+das ist das Meterpreter Modul für die Automatische Privilegien eskalation. Und taddaaa das funktioniert 
+
+
+Jetzt gilt es noch die Flags zu finden aber das ist blödsinn zu Dokumentieren
+     
