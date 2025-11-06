@@ -103,4 +103,24 @@ aubreanna:bubb13guM!@#123
 
 und schon können wir den user wechseln und die User Flag laden 
 
-Im home Verzeichniss gibt es dann aber noch eine jenkins.txt datei. beim auslesen sehen wir das ein Jenkins Server auf '172.17.0.2:8080' läuft. Aus intresse checken wir mal unsere interne IP und siehe da wir sind im selben netz '172.17.0.1' sprich um jetzt 
+Im home Verzeichniss gibt es dann aber noch eine jenkins.txt datei. beim auslesen sehen wir das ein Jenkins Server auf '172.17.0.2:8080' läuft. Aus intresse checken wir mal unsere interne IP und siehe da wir sind im selben netz '172.17.0.1' sprich um jetzt weiterzumachen bauen wir einen TRunnel auf Den habe ich dediziert in Reverse SSH Tunnel eintrag behandelt 
+
+# Scanning Jenkins
+
+## NMap 
+```
+nmap -sCV -p 1234 localhost
+PORT     STATE SERVICE VERSION
+1234/tcp open  http    Jetty 9.4.30.v20200611
+```
+
+## gobuster 
+
+```
+gobuster dir -r -u http://127.0.0.1:1234 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt 
+
+```
+
+Dabei ist meine Zielmaschine wieder mal abgestrorben (danke THM) und ich hatte die schnauze voll. Hier aber noch ein writeup 
+
+https://olivierkonate.medium.com/internal-tryhackme-writeup-4b4d92d26f4d
