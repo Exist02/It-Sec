@@ -7,6 +7,7 @@
 | **4625  <br>**(Failed Logon)     | Detect brute force, password spraying, or vulnerability scanning            | Logged on the target machine, the one you are trying to access | **Inconsistent**. The logs have lots of caveats that may trick you into the wrong understanding of the event |
 |                                  |                                                                             |                                                                |                                                                                                              |
 
+
 # User Management
 
 |**Event ID**|**Description**|**Malicious Usage**|
