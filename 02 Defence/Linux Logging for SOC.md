@@ -118,3 +118,49 @@ Before moving on, let's explore a core OS concept that might help you understa
 ![A flowchart of a Linux system call: you start a program, the "execve" system call is passed to the kernel, the kernel uses hardware resources, and returns the results.](https://tryhackme-images.s3.amazonaws.com/user-uploads/678ecc92c80aa206339f0f23/room-content/678ecc92c80aa206339f0f23-1757002115631.svg)
 
 Why do you need to know about system calls? Well, all modern EDRs and logging tools rely on them - they monitor the main system calls and log the details in a human-readable format. Since there is nearly no way for attackers to bypass system calls, all you have to do is choose the system calls you'd like to log and monitor. In the next task, you will try it in practice using auditd.
+
+
+# Auditd
+
+## Audit Daemon
+
+Auditd (Audit Daemon) is a built-in auditing solution often used by the SOC team for runtime monitoring. In this task, we will skip the configuration part and focus on how to read auditd rules and how to interpret the results. Let's start from the rules - instructions located in `/etc/audit/rules.d/` that define which system calls to monitor and which filters to apply.
+
+Monitoring every process, file, and network event can quickly produce gigabytes of logs each day. But more logs don't always mean better detection since an attack buried in a terabyte of noise is still invisible. That's why SOC teams often focus on the highest-risk events and build balanced rulesets, like [this one](https://github.com/Neo23x0/auditd/blob/master/audit.rules)
+
+## Using Auditd
+
+You can view the generated logs in real time in `/var/log/audit/audit.log`, but it is easier to use the `ausearch` command, as it formats the output for better readability and supports filtering options. Let's see an example based on the rules from the example above by searching events matching the "proc_wget" key:
+
+Looking for "Wget" Execution
+
+```shell-session
+root@thm-vm:~$ ausearch -i -k proc_wget
+----
+type=PROCTITLE msg=audit(08/12/25 12:48:19.093:2219) : proctitle=wget https://files.tryhackme.thm/report.zip
+type=CWD msg=audit(08/12/25 12:48:19.093:2219) : cwd=/root
+type=EXECVE msg=audit(08/12/25 12:48:19.093:2219) : argc=2 a0=wget a1=https://files.tryhackme.thm/report.zip
+type=SYSCALL msg=audit(08/12/25 12:48:19.093:2219) : arch=x86_64 syscall=execve [...] ppid=3752 pid=3888 auid=ubuntu uid=root tty=pts1 exe=/usr/bin/wget key=proc_wget
+```
+
+The terminal above shows a log of a single "wget" command. Here, auditd splits the event into four lines: the PROCTITLE shows the process command line, CWD reports the current working directory, and the remaining two lines show the system call details, like:
+
+- `pid=3888, ppid=3752`: Process ID and Parent Process ID. Helpful in linking events and building a process tree
+- `auid=ubuntu`: Audit user. The account originally used to log in, whether locally (keyboard) or remotely (SSH)
+- `uid=root`: The user who ran the command. The field can differ from auid if you switched users with sudo or su
+- `tty=pts1`: Session identifier. Helps distinguish events when multiple people work on the same Linux server
+- `exe=/usr/bin/wget`: Absolute path to the executed binary, often used to build SOC detection rules
+- `key=proc_wget`: Optional tag specified by engineers in auditd rules that is useful to filter the events
+
+**File Events**
+
+Now, let's look at the file events matching the "file_sshconf" key. As you may see from the terminal below, auditd tracked the change to the `/etc/ssh/sshd_config` file via the "nano" command. SOC teams often set up rules to monitor changes in critical files and directories (e.g., SSH configuration files, cronjob definitions, or system settings)
+
+# Auditd Alternatives
+
+You might have noticed an inconvenient output of auditd - although it provides a verbose logging, it is hard to read and ingest into SIEM. That's why many SOC teams resort to the alternative runtime logging solutions, for example:
+
+- [Sysmon for Linux](https://github.com/microsoft/SysmonForLinux): A perfect choice if you already work with Sysmon and love XML
+- [Falco](https://falco.org/): A modern, open-source solution, ideal for monitoring containerized systems
+- [Osquery](https://osquery.io/): An interesting tool that can be broadly used for various security purposes
+- [EDRs](https://tryhackme.com/room/introductiontoedr): Most EDR solutions can track and monitor various Linux runtime events
